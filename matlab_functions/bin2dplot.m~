@@ -21,14 +21,14 @@ function h = bin2dplot(X, Y, varargin)
 %                     default: [0.9569 0.4275 0.2627];
 % 'refline'  draw reference line (regression); default: no refline
 % 'reflinestyle'  linestyle for refline; default: '--'
-% 'reflinewidth'  linewidth for refline; default: 1
+% 'reflinewidth'                  linewidth for refline; default: 1
 %
 % Outputs:
 % -------------------------------------------------------------------------
 % h              graphic handles 
 %   h{1}         entire figure 
 %   h{2}         dots    
-%   h{3}         reference line (empty if there is no refline)
+%   h{3}         reference line
 %   h{4}         2d error bars
 %
 % Examples: 
@@ -37,7 +37,20 @@ function h = bin2dplot(X, Y, varargin)
 % for i = 1:10, X{i} = rand(20,1); Y{i} = rand(20,1); end
 % h = bin2dplot(X, Y, 'nbins', 10, 'refline');
 %
-% savename = 'example_bin2dplot.pdf';
+% col =  [0    0.1157    0.2686
+%     0.1157    0.2765    0.4725
+%     0.4843    0.1157    0.1078
+%     0.3667    0.4765    0.1353
+%     0.2765    0.1902    0.3824
+%     0.0922    0.4216    0.5118
+%     0.7941    0.3235   0];
+%
+% % draw
+% h = bar_wani(y, e, .8, 'colors', col, 'errbar_width', [0 0], 'ast', p, 'ylim', [-2.5 2.5], 'ytick', -2:2, 'ast_adj_x', 0, 'ast_adj_y_neg', .15);
+% set(gca, 'ytickLabel', num2str(get(gca, 'ytick')'));
+% set(h, 'position', [1   531   399   169]);
+% 
+% savename = 'example_barwani.pdf';
 % 
 % try
 %     pagesetup(h);
