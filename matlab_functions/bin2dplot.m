@@ -1,4 +1,4 @@
-function h = bin2dplot(X, Y, varargin)
+function [h, stats] = bin2dplot(X, Y, varargin)
 
 % Draw a 2d plot with 2d error bars with binned data (multilevel)
 %
@@ -22,6 +22,10 @@ function h = bin2dplot(X, Y, varargin)
 % 'refline'  draw reference line (regression); default: no refline
 % 'reflinestyle'  linestyle for refline; default: '--'
 % 'reflinewidth'  linewidth for refline; default: 1
+%
+% 'stats'    running glmfit_multilevel on X and Y
+% 'covs'     covariates 
+% 'resid'    draw plot with residualized X with covariates
 %
 % Outputs:
 % -------------------------------------------------------------------------
@@ -58,10 +62,21 @@ dorefline = 0;
 nbins = 4;
 reflinest = '--';
 reflinew = 1;
+do_resid = 0;
+do_stat = 0;
 
 colors = [0.8353    0.2431    0.3098];
 colors_ref = [0.9569    0.4275    0.2627];
 
+subjn = numel(X);
+
+X_cov = cell(subjn,1);
+covariates= cell(subjn,1);
+
+Xbins = NaN(subjn, nbins);
+Ybins = NaN(subjn, nbins);
+
+for i = 1:subjn, covariates{i} = []; end
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -80,6 +95,12 @@ for i = 1:length(varargin)
                 reflinest = varargin{i+1};
             case {'reflinewidth'}
                 reflinew = varargin{i+1};
+            case {'covs'}
+                covariates = varargin{i+1};
+            case {'resid'}
+                do_resid = 1;
+            case {'stats', 'stat'}
+                do_stat = 0;
             case {'nbins'}
                 nbins = varargin{i+1};
 
@@ -87,7 +108,17 @@ for i = 1:length(varargin)
     end
 end
 
-subjn = numel(X);
+for i = 1:subjn
+    X_cov{i} = [X{i} covariates{i}]; 
+    
+    if do_resid
+        X{i} = resid(covariates{i}, X{i});
+    end
+end
+
+if do_stat
+    stats = glmfit_multilevel(Y, X_cov, [], 'noverbose', 'weighted', 'boot', 'nresample', 10000);
+end
 
 clear Xbins Ybins;
 
