@@ -100,7 +100,7 @@ for i = 1:length(varargin)
             case {'resid'}
                 do_resid = 1;
             case {'stats', 'stat'}
-                do_stat = 0;
+                do_stat = 1;
             case {'nbins'}
                 nbins = varargin{i+1};
 
@@ -117,10 +117,16 @@ for i = 1:subjn
 end
 
 if do_stat
-    stats = glmfit_multilevel(Y, X_cov, [], 'noverbose', 'weighted', 'boot', 'nresample', 10000);
+    stats = glmfit_multilevel(Y, X_cov, [], 'verbose', 'weighted', 'boot', 'nresample', 10000);
 end
 
 clear Xbins Ybins;
+
+if do_resid
+    for i = 1:subjn
+        Y{i} = resid(covariates{i}, Y{i});
+    end
+end
 
 for i = 1:subjn
     

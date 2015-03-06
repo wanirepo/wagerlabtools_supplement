@@ -1,31 +1,27 @@
-function [h, stats] = bin2dplot(X, Y, varargin)
+function h = err2d(x, y, xe, ye, varargin)
 
-% Draw a 2d plot with 2d error bars with binned data (multilevel)
+% Draw a scatter plot with 2d error bars
 %
 % Usage:
 % -------------------------------------------------------------------------
-% h = bin2dplot(Y, varargin)
+% function h = err2d(x, y, xe, ye, varargin)
 %
 % Inputs:
 % -------------------------------------------------------------------------
-% X     cell array: each cell for each subject contains any x-axis values
-%       For example, it can be temperature (stimulus intensity)
-% Y     cell array: each cell for each subject contains any y-axis values
-%       that match with X. For example, it can be pain ratings. 
+% x     mean x
+% y     mean y
+%
+% xe    standard error of x
+% ye    standard error of y
 %
 % Optional inputs: Enter keyword followed by variable with values
 % 'ylim'     set up y-axis limit manually
-% 'nbins'    the number of bins for x-axis (default: 4)
 % 'colors'   colors of the dots; default: [0.8353 0.2431 0.3098];
 % 'colors_refline'    colors for the reference line 
 %                     default: [0.9569 0.4275 0.2627];
 % 'refline'  draw reference line (regression); default: no refline
 % 'reflinestyle'  linestyle for refline; default: '--'
 % 'reflinewidth'  linewidth for refline; default: 1
-%
-% 'stats'    running glmfit_multilevel on X and Y
-% 'covs'     covariates - with this, the plot will use residualized X. 
-% 'resid'    d
 %
 % Outputs:
 % -------------------------------------------------------------------------
@@ -38,10 +34,15 @@ function [h, stats] = bin2dplot(X, Y, varargin)
 % Examples: 
 % -------------------------------------------------------------------------
 % % data
-% for i = 1:10, X{i} = rand(20,1); Y{i} = rand(20,1); end
-% h = bin2dplot(X, Y, 'nbins', 10, 'refline');
+% X = rand(20,20); Y = rand(20,20);
+% x = mean(X);
+% y = mean(Y);
+% xe = ste(X);
+% ye = ste(Y);
 %
-% savename = 'example_bin2dplot.pdf';
+% h = err2d(x, y, xe, ye, 'refline')
+%
+% savename = 'example_2derrplot.pdf';
 % 
 % try
 %     pagesetup(h);
@@ -56,18 +57,13 @@ function [h, stats] = bin2dplot(X, Y, varargin)
 
 % Programmers' notes:
 
-
 doman_ylim = 0;
 dorefline = 0;
-nbins = 4;
 reflinest = '--';
 reflinew = 1;
-do_resid = 0;
-do_stat = 0;
 
 colors = [0.8353    0.2431    0.3098];
 colors_ref = [0.9569    0.4275    0.2627];
-
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -86,73 +82,10 @@ for i = 1:length(varargin)
                 reflinest = varargin{i+1};
             case {'reflinewidth'}
                 reflinew = varargin{i+1};
-            case {'covs'}
-                covariates = varargin{i+1};
-            case {'resid'}
-                do_resid = 1;
-            case {'stats', 'stat'}
-                do_stat = 0;
-            case {'nbins'}
-                nbins = varargin{i+1};
-
         end
     end
 end
 
-subjn = numel(X);
-
-for i = 1:subjn
-    X_cov{i} = [X{i} covariates{i}]; 
-    
-    if do_resid
-        X{i} = resid(covariates{i}, X{i});
-    end
-end
-
-if do_stat
-    stats = glmfit_multilevel(Y, X_cov, [], 'noverbose', 'weighted', 'boot', 'nresample', 10000);
-end
-
-clear Xbins Ybins;
-
-for i = 1:subjn
-    
-    % get binidx
-    [~, sort_idx] = sort(X{i});
-    binidx = zeros(numel(X{i}),1);
-    if numel(unique(X{i})) == nbins
-        u = unique(X{i});
-        for j = 1:numel(u)
-            binidx(X{i} == u(j)) = j;
-        end
-        
-        for j = 1:nbins
-            Xbins(i,j) = mean(X{i}(binidx==j));
-            Ybins(i,j) = mean(Y{i}(binidx==j));
-        end
-        
-    else
-        algo = {'ceil', 'floor'};
-        for j = 1:(nbins-1)
-            algon = double(rand>.5)+1;
-            eval(['tri_n = ' algo{algon} '(numel(X{i})./nbins);']);
-            binidx(find(binidx==0, 1, 'first'):(find(binidx==0, 1, 'first')+tri_n-1)) = ...
-                repmat(j, tri_n, 1);
-        end
-        binidx(binidx==0) = nbins;
-        for j = 1:nbins
-            Xbins(i,j) = mean(X{i}(sort_idx(binidx==j)));
-            Ybins(i,j) = mean(Y{i}(sort_idx(binidx==j)));
-        end
-    end
-    
-end
-
-x = mean(Xbins);
-xe = ste(Xbins);
-
-y = mean(Ybins);
-ye = ste(Ybins);
 
 h{1} = create_figure('2d_plot');
     
@@ -183,8 +116,8 @@ ymax2 = max(y+ye) + range(y)*.1;
 for i = 1:numel(x)
     h{4}{i} = ploterr(x(i),y(i),xe(i),ye(i));
     set(h{4}{i}(1), 'marker', '.', 'color', colors, 'markersize', 1);
-    set(h{4}{i}(2), 'color', colors, 'linewidth', 2);
-    set(h{4}{i}(3), 'color', colors, 'linewidth', 2);
+    set(h{4}{i}(2), 'color', colors, 'linewidth', 1.5);
+    set(h{4}{i}(3), 'color', colors, 'linewidth', 1.5);
     xdata = get(h{4}{i}(2), 'xData');
     xdata(4:5) = xdata(1:2); xdata(7:8) = xdata(1:2);
     set(h{4}{i}(2), 'xdata', xdata);
@@ -209,4 +142,3 @@ else
     set(gca, 'xlim', [xmin2 xmax2], 'ylim', [ymin2 ymax2], 'linewidth', 1.2, 'fontsize', 18);
 end
 
-end
