@@ -44,11 +44,11 @@ function [h, stats] = bin2dplot(X, Y, varargin)
 % savename = 'example_bin2dplot.pdf';
 % 
 % try
-%     pagesetup(h);
-%     saveas(h, savename);
+%     pagesetup(gcf);
+%     saveas(gcf, savename);
 % catch
-%     pagesetup(h);
-%     saveas(h, savename);   
+%     pagesetup(gcf);
+%     saveas(gcf, savename);   
 % end
 %
 % -------------------------------------------------------------------------

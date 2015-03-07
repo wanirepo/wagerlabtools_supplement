@@ -45,11 +45,11 @@ function h = err2d(x, y, xe, ye, varargin)
 % savename = 'example_2derrplot.pdf';
 % 
 % try
-%     pagesetup(h);
-%     saveas(h, savename);
+%     pagesetup(gcf);
+%     saveas(gcf, savename);
 % catch
-%     pagesetup(h);
-%     saveas(h, savename);   
+%     pagesetup(gcf);
+%     saveas(gcf, savename);   
 % end
 %
 % -------------------------------------------------------------------------
