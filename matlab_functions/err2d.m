@@ -61,6 +61,8 @@ doman_ylim = 0;
 dorefline = 0;
 reflinest = '--';
 reflinew = 1;
+eb_width = 1.5;
+m_size = 60;
 
 colors = [0.8353    0.2431    0.3098];
 colors_ref = [0.9569    0.4275    0.2627];
@@ -82,6 +84,10 @@ for i = 1:length(varargin)
                 reflinest = varargin{i+1};
             case {'reflinewidth'}
                 reflinew = varargin{i+1};
+            case {'errorbar_width'}
+                eb_width = varargin{i+1};
+            case {'marker_size'}
+                m_size = varargin{i+1};
         end
     end
 end
@@ -89,7 +95,7 @@ end
 
 h{1} = create_figure('2d_plot');
     
-h{2} = scatter(x,y, 60, colors, 'filled');
+h{2} = scatter(x,y, m_size, colors, 'filled');
 
 if dorefline
     h{3} = refline;
@@ -116,8 +122,8 @@ ymax2 = max(y+ye) + range(y)*.1;
 for i = 1:numel(x)
     h{4}{i} = ploterr(x(i),y(i),xe(i),ye(i));
     set(h{4}{i}(1), 'marker', '.', 'color', colors, 'markersize', 1);
-    set(h{4}{i}(2), 'color', colors, 'linewidth', 1.5);
-    set(h{4}{i}(3), 'color', colors, 'linewidth', 1.5);
+    set(h{4}{i}(2), 'color', colors, 'linewidth', eb_width);
+    set(h{4}{i}(3), 'color', colors, 'linewidth', eb_width);
     xdata = get(h{4}{i}(2), 'xData');
     xdata(4:5) = xdata(1:2); xdata(7:8) = xdata(1:2);
     set(h{4}{i}(2), 'xdata', xdata);
