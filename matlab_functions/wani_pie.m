@@ -16,6 +16,9 @@ function h = wani_pie(X, varargin)
 % 'fontsize'   font size for percentage  {default: 15}
 % 'hole'       add a hole in the middle of the pie chart {default: no hole}
 % 'hole_size'  specify the size of the middle hole {default: 5000}
+% 'outline'
+% 'outlinecol'
+% 'outlinewidth'
 %
 % Outputs:
 % -------------------------------------------------------------------------
@@ -60,6 +63,9 @@ dotext = 1;
 fs = 15;
 hs = 5000;
 dohole = 0;
+doout = 0;
+outlinecol = [0 0 0];
+outlinewidth = 1.2;
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -75,6 +81,12 @@ for i = 1:length(varargin)
                 dohole = 1;
             case {'hole_size'}
                 hs = varargin{i+1};
+            case {'outline'}
+                doout = 1;
+            case {'outlinecol'}
+                outlinecol = varargin{i+1};
+            case {'outlinewidth'}
+                outlinewidth = varargin{i+1};
         end
     end
 end
@@ -83,17 +95,21 @@ h = pie(X);
 set(gcf, 'color', 'w', 'position', [360   393   389   305]);
 
 for i = 1:numel(X)
-    set(h(2*i-1), 'facecolor', cols(i,:), 'edgecolor', 'none')
+    set(h(2*i-1), 'facecolor', cols(i,:), 'edgecolor', 'none');
     hold on;
     if dotext
-        set(h(2*i), 'fontSize', fs)
+        set(h(2*i), 'fontSize', fs);
     else
-        set(h(2*i), 'String', '')
+        set(h(2*i), 'String', '');
     end
 end
 
 if dohole
-    scatter(0, 0, hs, 'w', 'filled')
+    scatter(0, 0, hs, 'w', 'filled');
+end
+
+if doout
+    scatter(0, 0, 43500, outlinecol, 'linewidth', outlinewidth);
 end
 
 end
