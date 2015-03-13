@@ -807,7 +807,7 @@ o2 = montage(o2, 'saggital', 'wh_slice', xyz, 'onerow');
 
 o2 = montage(o2, 'axial', 'slice_range', [-20 50], 'onerow', 'spacing', 10);
 
-squeeze_axes(o2.montage{1}.axis_handles, 10);
+squeeze_axes_wani(o2.montage{1}.axis_handles, -40);
 
 %%
 
