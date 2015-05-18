@@ -73,6 +73,4 @@ for j = 1:subjn
     save(savename, 'roi_val');
 end
 
-sendmail_wani('clinpsywoo@gmail.com', 'REST_BMRK5', 'done');
-
 
