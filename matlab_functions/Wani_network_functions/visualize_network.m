@@ -3,7 +3,7 @@ function visualize_network(A, varargin)
 % visualize_network(A, varargin)
 %
 % optional inputs
-% case {'webwegdir'}
+% case {'webwebdir'}
 % case {'node_names'}
 % case {'groups'}
 % case {'group_names'}
@@ -23,7 +23,7 @@ for i = 1:length(varargin)
     if ischar(varargin{i})
         switch varargin{i}
             % functional commands
-            case {'webwegdir'}
+            case {'webwebdir'}
                 webwebdir = varargin{i+1};
             case {'node_names'}
                 vis_nodename = true;

@@ -4,7 +4,7 @@ function [h, stats] = bin2dplot(X, Y, varargin)
 %
 % Usage:
 % -------------------------------------------------------------------------
-% h = bin2dplot(Y, varargin)
+% [h, {stats}] = bin2dplot(X, Y, varargin)
 %
 % Inputs:
 % -------------------------------------------------------------------------
@@ -64,6 +64,7 @@ reflinest = '--';
 reflinew = 1;
 do_resid = 0;
 do_stat = 0;
+dosameplot = 0;
 
 colors = [0.8353    0.2431    0.3098];
 colors_ref = [0.9569    0.4275    0.2627];
@@ -103,6 +104,8 @@ for i = 1:length(varargin)
                 do_stat = 1;
             case {'nbins'}
                 nbins = varargin{i+1};
+            case {'sameplot'}
+                dosameplot = 1;
 
         end
     end
@@ -167,7 +170,9 @@ xe = ste(Xbins);
 y = mean(Ybins);
 ye = ste(Ybins);
 
-h{1} = create_figure('2d_plot');
+if ~dosameplot
+    h{1} = create_figure('2d_plot');
+end
     
 h{2} = scatter(x,y, 60, colors, 'filled');
 
