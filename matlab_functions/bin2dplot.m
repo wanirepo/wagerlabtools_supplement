@@ -164,17 +164,17 @@ for i = 1:subjn
     
 end
 
-x = mean(Xbins);
+x = nanmean(Xbins);
 xe = ste(Xbins);
 
-y = mean(Ybins);
+y = nanmean(Ybins);
 ye = ste(Ybins);
 
 if ~dosameplot
     h{1} = create_figure('2d_plot');
 end
     
-h{2} = scatter(x,y, 60, colors, 'filled');
+h{2} = scatter(x,y, 100, colors, 'filled');
 
 if dorefline
     h{3} = refline;
