@@ -34,8 +34,11 @@ function boxplot_wani(x, varargin)
 %     0.4667    0.5765    0.2353
 %     0.8941    0.4235    0.0392
 %     0.5843    0.2157    0.2078];
-% 
+%
+% % example 1
 % boxplot_wani(x, 'color', col, 'refline', 0.5);
+% % example 2 : with thiner lines
+% boxplot_wani(x, 'color', col, 'refline', 0.5, 'linewidth', 2, 'boxlinewidth', 3);
 %
 % savename = 'example_box.pdf';
 % 
@@ -83,39 +86,32 @@ for i = 1:length(varargin)
     end
 end
 
-% put NaNs between groups if there are many groups of data
 
 create_figure('box_plot');
 boxplot(x); % using boxplot default
-set(gca, 'fontSize', font_size, 'lineWidth', line_axis, 'tickLength', [0.01 0.01]);
-set(gcf, 'position', [50   159   105*coln   291]);
 
 h = get(get(gca, 'children'), 'children');
 
 k=0;
 for i = (3*coln+1):length(h)
-    set(h(i), 'lineWidth', line_etc)
     if isequal(get(h(i), 'color'), [0 0 1])
         k = k+1;
-        patch(get(h(i), 'xdata'), get(h(i), 'ydata'), colud2(k,:), 'EdgeColor', colud(k,:));
-        set(h(i), 'color', colud(k,:), 'linewidth', line_box, 'linestyle', '-');
+        patchdata.x{k} = get(h(i), 'xdata');
+        patchdata.y{k} = get(h(i), 'ydata');
     end
 end
 
-for i = 1:(3*coln)
-    set(h(i), 'lineWidth', line_etc)
-    if i > coln && i <= (coln*2)
-        set(h(i), 'marker', '.', 'markerSize', 15); % marker: circle
-    end
-    
-    if isequal(get(h(i), 'color'), [1 0 0])
-        set(h(i), 'color', [0.7608 0.3020 0], 'linewidth', line_etc, 'linestyle', '-'); % median line
-    end
+clf;
+
+for i = 1:numel(patchdata.x)
+    patch(patchdata.x{i}, patchdata.y{i}, colud2(i,:), 'EdgeColor', colud(i,:));
 end
 
 hold on;
 boxplot(x); % because of the patch, do this again
-set(gca, 'fontSize', font_size, 'lineWidth', line_axis, 'tickLength', [0.01 0.01]);
+set(gca, 'fontSize', font_size, 'lineWidth', line_axis, 'xlim', ...
+    [0.2 coln+.8], 'XTickLabelMode', 'auto', 'XTickMode', 'auto');
+set(gcf, 'position', [50   159   105*coln   291]);
 h = get(get(gca, 'children'), 'children');
 h = h{1};
 k=0;
@@ -142,6 +138,8 @@ if dorefline
     l = refline([0 ref]);
     set(l, 'color', [.5 .5 .5], 'linestyle', '--', 'linewidth', line_ref);
 end
+
+set(gca, 'xtick', find(sum(isnan(x))~=size(x,1)), 'xticklabel', ' ');
 
 end
 
