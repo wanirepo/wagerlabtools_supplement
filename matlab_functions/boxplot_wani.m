@@ -1,14 +1,51 @@
 function boxplot_wani(x, varargin)
 
+% Draw a box plot with some additional useful features. (work in the
+% matlab version up to 2014a). 
+%
+% Usage:
+% -------------------------------------------------------------------------
 % boxplot_wani(x, varargin)
 %
-% 'color', matrix 3 x n
-% 'dorefline', ref (one number, y = ref)
-% 'linewidth', line_etc
-% 'boxlinewidth', line_box
-% 'reflinewidth', line_ref
-% 'axislinewidth', line_axis
-% 'fontsize', font_size
+% Inputs:
+% -------------------------------------------------------------------------
+% x    A data matrix. If there are multiple groups, you can insert a column
+%      of NaNs between two groups. Also if you have multiple columns that
+%      have different number of data points (e.g., one has 50, and the 
+%      other has 38), you can just fill in NaNs (e.g., 12 NaNs). 
+% 
+% -------------------------------------------------------------------------
+% Optional inputs: Enter keyword followed by variable with values
+%
+% ['color', 'colors', cols]     cols: matrix of 3 x n (n columns)
+% ['boxlinewidth', line_box]    scalar, linewidth for the box
+% ['linewidth', line_etc]       scalar, linewidth for all the lines other 
+%                               than box
+% ['axislinewidth', line_axis]  scalar, linewidth for the axis
+% ['fontsize', font_size]       scalar, font size for the axis
+% ['dorefline', ref]            scalar, draw a reference line at y = ref
+% ['reflinewidth', line_ref]    scalar, linewidth for the refline
+%
+% example:
+% 
+% x = rand(100,5);
+% col =  [0.3765    0.2902    0.4824
+%     0.2157    0.3765    0.5725
+%     0.4667    0.5765    0.2353
+%     0.8941    0.4235    0.0392
+%     0.5843    0.2157    0.2078];
+% 
+% boxplot_wani(x, 'color', col, 'refline', 0.5);
+%
+% savename = 'example_box.pdf';
+% 
+% try
+%     pagesetup(gcf);
+%     saveas(gcf, savename);
+% catch
+%     pagesetup(gcf);
+%     saveas(gcf, savename);
+% end
 
 coln = size(x,2);
 colud = repmat([0 0 0], coln, 1); % default color = black
@@ -102,7 +139,7 @@ for i = 1:(3*coln)
 end
 
 if dorefline
-    l = refline([ref ref]);
+    l = refline([0 ref]);
     set(l, 'color', [.5 .5 .5], 'linestyle', '--', 'linewidth', line_ref);
 end
 
