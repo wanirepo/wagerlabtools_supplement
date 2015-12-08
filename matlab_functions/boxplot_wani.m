@@ -55,10 +55,10 @@ colud = repmat([0 0 0], coln, 1); % default color = black
 colud2 = repmat([.9 .9 .9], coln, 1); % default back color = black
 
 dorefline = 0;
-line_etc = 3;
-line_box = 4;
+line_etc = 2;
+line_box = 3;
 line_ref = 1.5;
-line_axis = 2;
+line_axis = 1.5;
 font_size = 25;
 
 for i = 1:length(varargin)
@@ -67,7 +67,7 @@ for i = 1:length(varargin)
             % functional commands
             case {'color', 'colors'}
                 colud = flipud(varargin{i+1}); 
-                colud2 = colud + .25; 
+                colud2 = colud ; 
                 colud2(colud2>1)=1;
             case {'refline'}
                 dorefline = 1;
@@ -139,7 +139,8 @@ if dorefline
     set(l, 'color', [.5 .5 .5], 'linestyle', '--', 'linewidth', line_ref);
 end
 
-set(gca, 'xtick', find(sum(isnan(x))~=size(x,1)), 'xticklabel', ' ');
+set(gca, 'xtick', find(sum(isnan(x))~=size(x,1)), 'xticklabel', ' ',...
+    'box', 'off',  'TickLength', [.015 .015], 'TickDir', 'out');
 
 end
 

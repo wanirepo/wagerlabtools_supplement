@@ -9,6 +9,7 @@ function r = reformat_r(r, n, type)
 %    2: reconstruct
 %    3: remove diagonal
 %    4: make it symmetric
+%    5: fisher z transform
 
 switch type
     case 1
@@ -21,6 +22,8 @@ switch type
         r(logical(eye(n))) = 0;
     case 4
         r = (r + r')./2;
+    case 5
+        r = .5 * log( (1+r) ./ (1-r) );
 end
 
 end
