@@ -19,6 +19,7 @@ function [h, stats] = ind_xylines(X, Y, varargin)
 %
 % 'grp_colors'     color of a group line
 % 'grp_linewidth'  linewidth of a group line
+% 'nogrp'      no group line
 % 'covs'           covariates 
 % 'samefig'        draw the plot in the same fig
 %
@@ -53,6 +54,7 @@ ind_colors = [.5 .5 .5];
 ind_linewidth = 1;
 ind_linestyle = '-';
 
+dogrp = true;
 grp_colors = [0 0 0];
 grp_linewidth = 2;
 grp_linestyle = '-';
@@ -85,6 +87,8 @@ for i = 1:length(varargin)
                 covariates = varargin{i+1};
             case {'samefig'}
                 dosamefig = 1;
+            case {'nogrp'}
+                dogrp = false;
         end
     end
 end
@@ -122,7 +126,9 @@ stats.grpY = mean(cat(1,stats.newY{:}));
 
 stats.glmfit_multilevel_stats = glmfit_multilevel(Y, X_cov, [], 'weighted', 'verbose');
 
-h.grp = line(stats.grpX, stats.grpY, 'color', grp_colors, 'linewidth', grp_linewidth, 'linestyle', grp_linestyle);
+if dogrp
+    h.grp = line(stats.grpX, stats.grpY, 'color', grp_colors, 'linewidth', grp_linewidth, 'linestyle', grp_linestyle);
+end
 
 end
 
