@@ -118,13 +118,22 @@ for i = 1:subjn
     
     stats.newX{i} = newX(1,:);
     
+    if ~isempty(covariates{i})
+        covmean{i} = newX(2,:);
+    end
+    
     h.ind(i,1) = line(stats.newX{i}, stats.newY{i}, 'color', ind_colors, 'linewidth', ind_linewidth, 'linestyle', ind_linestyle);
 end
 
-stats.grpX = mean(cat(1,stats.newX{:}));
-stats.grpY = mean(cat(1,stats.newY{:}));
-
 stats.glmfit_multilevel_stats = glmfit_multilevel(Y, X_cov, [], 'weighted', 'verbose');
+
+stats.grpX = mean(cat(1,stats.newX{:}));
+
+if isempty(covariates{1})
+    stats.grpY = stats.glmfit_multilevel_stats.mean*[ones(1,2); stats.grpX];
+else
+    stats.grpY = stats.glmfit_multilevel_stats.mean*[ones(1,2); stats.grpX; mean(cat(1,covmean{:}))];
+end
 
 if dogrp
     h.grp = line(stats.grpX, stats.grpY, 'color', grp_colors, 'linewidth', grp_linewidth, 'linestyle', grp_linestyle);

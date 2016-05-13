@@ -25,6 +25,11 @@ function boxplot_wani(x, varargin)
 % ['fontsize', font_size]       scalar, font size for the axis
 % ['dorefline', ref]            scalar, draw a reference line at y = ref
 % ['reflinewidth', line_ref]    scalar, linewidth for the refline
+% ['reflinestyle', reflinestyle]   '-', '--', ':', etc.
+% ['reflinecolor', reflinecol]  reflinecol: matrix of 3 x n (n columns)
+% ['dotcolor', dotcols]         dotcols: matrix of 3 x n (n columns)
+% ['dotsize', dotsize]          scalar, size of the outlier dots
+% ['mediancolor', mdcols]       mdcols: matrix of 3 x n (n columns)
 %
 % example:
 % 
@@ -60,15 +65,20 @@ line_box = 3;
 line_ref = 1.5;
 line_axis = 1.5;
 font_size = 25;
+dotcolor = [0.7608    0.3020         0];
+dotsize = 12;
+reflinestyle = '--';
+reflinecol = [.7 .7 .7];
+boxlinestyle = {'-'};
+mdcol = [0.7608 0.3020 0];
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
         switch varargin{i}
             % functional commands
             case {'color', 'colors'}
-                colud = flipud(varargin{i+1}); 
-                colud2 = colud ; 
-                colud2(colud2>1)=1;
+                colud2 = flipud(varargin{i+1}); 
+                colud = colud2;
             case {'refline'}
                 dorefline = 1;
                 ref = varargin{i+1};
@@ -76,12 +86,24 @@ for i = 1:length(varargin)
                 line_etc = varargin{i+1};
             case {'boxlinewidth'}
                 line_box  = varargin{i+1};
+            case {'boxlinecolor'}
+                colud  = flipud(varargin{i+1});
             case {'reflinewidth'}
                 line_ref  = varargin{i+1};
+            case {'reflinestyle'}
+                reflinestyle  = varargin{i+1};
+            case {'reflinecolor'}
+                reflinecol  = varargin{i+1};
             case {'axislinewidth'}
                 line_axis  = varargin{i+1};
             case {'fontsize'}
                 font_size = varargin{i+1};
+            case {'dotcolor'}
+                dotcolor = varargin{i+1};
+            case {'dotsize'}
+                dotsize = varargin{i+1};
+            case {'mediancolor'}
+                mdcol = varargin{i+1};
         end
     end
 end
@@ -103,40 +125,48 @@ end
 
 clf;
 
-for i = 1:numel(patchdata.x)
-    patch(patchdata.x{i}, patchdata.y{i}, colud2(i,:), 'EdgeColor', colud(i,:));
-end
-
-hold on;
-boxplot(x); % because of the patch, do this again
-set(gca, 'fontSize', font_size, 'lineWidth', line_axis, 'xlim', ...
-    [0.2 coln+.8], 'XTickLabelMode', 'auto', 'XTickMode', 'auto');
-set(gcf, 'position', [50   159   105*coln   291]);
-h = get(get(gca, 'children'), 'children');
-h = h{1};
-k=0;
-for i = (3*coln+1):length(h)
-    set(h(i), 'lineWidth', line_etc)
-    if isequal(get(h(i), 'color'), [0 0 1])
-        k = k+1;
-        set(h(i), 'color', colud(k,:), 'linewidth', line_box, 'linestyle', '-');
-    end
-end
-
-for i = 1:(3*coln)
-    set(h(i), 'lineWidth', line_etc)
-    if i > coln && i <= (coln*2)
-        set(h(i), 'marker', '.', 'markerSize', 15)
+for j = 1:2 % just twice
+    for i = 1:numel(patchdata.x)
+        patch(patchdata.x{i}, patchdata.y{i}, colud2(i,:), 'EdgeColor', colud2(i,:));
     end
     
-    if isequal(get(h(i), 'color'), [1 0 0])
-        set(h(i), 'color', [0.7608    0.3020         0], 'linewidth', line_etc, 'linestyle', '-');
+    hold on;
+    boxplot(x); % because of the patch, do this again
+    set(gca, 'fontSize', font_size, 'lineWidth', line_axis, 'xlim', ...
+        [0.2 coln+.8], 'XTickLabelMode', 'auto', 'XTickMode', 'auto');
+    set(gcf, 'position', [50   159   105*coln   291]);
+    h = get(get(gca, 'children'), 'children');
+    h = h{1};
+    k=0;
+    for i = (3*coln+1):length(h)
+        set(h(i), 'lineWidth', line_etc)
+        if isequal(get(h(i), 'color'), [0 0 1])
+            k = k+1;
+            if numel(boxlinestyle) == 1
+                set(h(i), 'color', colud(k,:), 'linewidth', line_box, 'linestyle', boxlinestyle{1});
+            else
+                set(h(i), 'color', colud(k,:), 'linewidth', line_box, 'linestyle', boxlinestyle{k});
+            end
+        end
     end
-end
-
-if dorefline
-    l = refline([0 ref]);
-    set(l, 'color', [.5 .5 .5], 'linestyle', '--', 'linewidth', line_ref);
+    
+    for i = 1:(3*coln)
+        set(h(i), 'lineWidth', line_etc)
+        if i > coln && i <= (coln*2)
+            set(h(i), 'marker', '.', 'markerSize', dotsize, 'MarkerEdgeColor', dotcolor)
+        end
+        
+        if isequal(get(h(i), 'color'), [1 0 0])
+            set(h(i), 'color', mdcol, 'linewidth', line_etc, 'linestyle', '-');
+        end
+    end
+    
+    if j == 1
+        if dorefline
+            l = refline([0 ref]);
+            set(l, 'color', reflinecol, 'linestyle', reflinestyle, 'linewidth', line_ref);
+        end
+    end
 end
 
 set(gca, 'xtick', find(sum(isnan(x))~=size(x,1)), 'xticklabel', ' ',...
