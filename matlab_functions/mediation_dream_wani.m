@@ -21,6 +21,7 @@ if iscell(med_vars.imgs)
 elseif ischar(med_vars.imgs) % for the single level
     data = fmri_data(med_vars.imgs(1,:), mask);
 end
+data.dat = data.dat(:,1); % for 4-d images
     
 chunk = 1000;  % can be adjusted
 iter = ceil(length(data.dat)/chunk);
