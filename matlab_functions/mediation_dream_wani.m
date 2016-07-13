@@ -68,11 +68,11 @@ for distjob = 1:size(j,1)
     
     fprintf(FID, '\n');
     fprintf(FID, '%% path definition \n');
-    fprintf(FID, 'reposdir = ''/dreamio3/wagerlab/Repository'';\n');
+    fprintf(FID, 'reposdir = ''/home/chwo9116/codes_ineed/MATLAB/canlabrepo'';\n');
     fprintf(FID, 'addpath(genpath(reposdir));\n');
     fprintf(FID, 'spmdir = ''/usr/local/spm/spm8/'';\n');
     fprintf(FID, 'addpath(genpath(spmdir));\n');
-    fprintf(FID, 'codeineed = ''/dreamio/home/chwo9116/codes_ineed/MATLAB/mycodes'';\n');
+    fprintf(FID, 'codeineed = ''/home/chwo9116/codes_ineed/MATLAB/wagerlabtools_supplement'';\n');
     fprintf(FID, 'addpath(genpath(codeineed));\n');
     fprintf(FID, ['study_scriptdir = ''' study_scriptdir ''';\n']);
     fprintf(FID, 'addpath(study_scriptdir);\n');
