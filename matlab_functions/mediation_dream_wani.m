@@ -16,7 +16,12 @@ addpath(study_scriptdir);
 
 % ===== saving mediation_SETUP files =====
 [basedir, scriptname] = fileparts(code_filename);
-data = fmri_data(med_vars.imgs{1}(1,:), mask);
+if iscell(med_vars.imgs)
+    data = fmri_data(med_vars.imgs{1}(1,:), mask);
+elseif ischar(med_vars.imgs) % for the single level
+    data = fmri_data(med_vars.imgs(1,:), mask);
+end
+    
 chunk = 1000;  % can be adjusted
 iter = ceil(length(data.dat)/chunk);
 j = vec2mat(1:iter,ceil(iter/jobn));
@@ -83,25 +88,45 @@ for distjob = 1:size(j,1)
     fprintf(FID, '\n');
     
     % data chunking
-    fprintf(FID, '\t\t %% data chunking\n');
-    fprintf(FID, '\t\tfor i = 1:numel(med_vars.imgs)\n');
-    fprintf(FID, '\t\t\tdat{i} = fmri_data(med_vars.imgs{i}, mask);\n');
+    fprintf(FID, '\t\t%% data chunking\n');
+    
+    fprintf(FID, '\t\tif iscell(med_vars.imgs)\n');
+    fprintf(FID, '\t\t\tfor i = 1:numel(med_vars.imgs)\n');
+    fprintf(FID, '\t\t\t\tdat{i} = fmri_data(med_vars.imgs{i}, mask);\n');
+    fprintf(FID, '\t\t\t\tif ii ~= iter\n');
+    fprintf(FID, '\t\t\t\t\tdat{i}.dat = dat{i}.dat((chunk*ii-chunk+1):chunk*ii,:);\n');
+    fprintf(FID, '\t\t\t\telseif ii == iter\n');
+    fprintf(FID, '\t\t\t\t\tdat{i}.dat = dat{i}.dat((chunk*ii-chunk+1):end,:);\n');
+    fprintf(FID, '\t\t\t\tend\n');
+    fprintf(FID, '\t\tend\n');
+    fprintf(FID, '\t\telseif ischar(med_vars.imgs) %% single level\n');
+    fprintf(FID, '\t\t\tdat = fmri_data(med_vars.imgs, mask);\n');
     fprintf(FID, '\t\t\tif ii ~= iter\n');
-    fprintf(FID, '\t\t\t\tdat{i}.dat = dat{i}.dat((chunk*ii-chunk+1):chunk*ii,:);\n');
+    fprintf(FID, '\t\t\t\tdat.dat = dat.dat((chunk*ii-chunk+1):chunk*ii,:);\n');
     fprintf(FID, '\t\t\telseif ii == iter\n');
-    fprintf(FID, '\t\t\t\tdat{i}.dat = dat{i}.dat((chunk*ii-chunk+1):end,:);\n');
+    fprintf(FID, '\t\t\t\tdat.dat = dat.dat((chunk*ii-chunk+1):end,:);\n');
     fprintf(FID, '\t\t\tend\n');
     fprintf(FID, '\t\tend\n');
     fprintf(FID, '\n');
     
     % running mediation functions
-    fprintf(FID, '\t\t %% running mediation\n');
-    fprintf(FID, '\n');
+    fprintf(FID, '\t\t%% running mediation\n');
     
-    fprintf(FID, '\t\tfor i = 1:length(dat{i}.dat)\n');
-    fprintf(FID, '\t\t\tfor jj = 1:numel(med_vars.imgs)\n');
-    fprintf(FID, '\t\t\t\tM{jj} = double(dat{jj}.dat(i,:)'');\n');
+    fprintf(FID, '\t\tif iscell(dat)\n');
+    fprintf(FID, '\t\t\tlen = length(dat{i}.dat);\n');
+    fprintf(FID, '\t\telse\n');
+    fprintf(FID, '\t\t\tlen = length(dat.dat);\n');
+    fprintf(FID, '\t\tend\n');
+    
+    fprintf(FID, '\t\tfor i = 1:len\n');
+    fprintf(FID, '\t\t\tif iscell(med_vars.imgs)\n');
+    fprintf(FID, '\t\t\t\tfor jj = 1:numel(med_vars.imgs)\n');
+    fprintf(FID, '\t\t\t\t\tM{jj} = double(dat{jj}.dat(i,:)'');\n');
+    fprintf(FID, '\t\t\t\tend\n');
+    fprintf(FID, '\t\t\telseif ischar(med_vars.imgs) %% single level\n');
+    fprintf(FID, '\t\t\t\tM = double(dat.dat(i,:)'');\n');
     fprintf(FID, '\t\t\tend\n');
+    
     fprintf(FID, '\n');
     fprintf(FID, '\t\t\tfor kk = 1:modeln\n');
     fprintf(FID, '\t\t\t\teval([''[dummy, stats] = '' models.fns{kk} '';'']);\n');
