@@ -1,7 +1,7 @@
-function boxplot_wani(x, varargin)
+function boxplot_wani_2016(x, varargin)
 
 % Draw a box plot with some additional useful features. (work in the
-% matlab version up to 2014a). 
+% matlab version since 2016 maybe 2015 as well, but not tested). 
 %
 % Usage:
 % -------------------------------------------------------------------------
@@ -120,7 +120,7 @@ boxplot(x); % using boxplot default
 h = get(get(gca, 'children'), 'children');
 
 k=0;
-for i = (3*coln+1):length(h)
+for i = 1:length(h) 
     if isequal(get(h(i), 'color'), [0 0 1])
         k = k+1;
         patchdata.x{k} = get(h(i), 'xdata');
@@ -143,9 +143,9 @@ for j = 1:2 % just twice
     h = get(get(gca, 'children'), 'children');
     h = h{1};
     k=0;
-    for i = (3*coln+1):length(h)
+    for i = 1:length(h) 
         set(h(i), 'lineWidth', line_etc)
-        if isequal(get(h(i), 'color'), [0 0 1])
+        if strcmp(h(i).Tag, 'Box')
             k = k+1;
             if numel(boxlinestyle) == 1
                 set(h(i), 'color', colud(k,:), 'linewidth', line_box, 'linestyle', boxlinestyle{1});
@@ -155,9 +155,10 @@ for j = 1:2 % just twice
         end
     end
     
-    for i = 1:(3*coln)
+    for i = 1:length(h) %(3*coln)
         set(h(i), 'lineWidth', line_etc)
-        if i > coln && i <= (coln*2)
+        
+        if strcmp(h(i).Tag, 'Outliers')
             set(h(i), 'marker', '.', 'markerSize', dotsize, 'MarkerEdgeColor', dotcolor)
         end
         
