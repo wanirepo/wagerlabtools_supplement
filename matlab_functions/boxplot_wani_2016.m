@@ -74,6 +74,7 @@ reflinestyle = '--';
 reflinecol = [.7 .7 .7];
 boxlinestyle = {'-'};
 mdcol = [0.7608 0.3020 0];
+usesamefig = false;
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -109,12 +110,15 @@ for i = 1:length(varargin)
                 mdcol = varargin{i+1};
             case {'medianlinewidth'}
                 line_md = varargin{i+1};
+            case {'samefig'}
+                usesamefig = true;
         end
     end
 end
 
-
-create_figure('box_plot');
+if ~usesamefig
+    create_figure('box_plot');
+end
 boxplot(x); % using boxplot default
 
 h = get(get(gca, 'children'), 'children');
@@ -169,8 +173,10 @@ for j = 1:2 % just twice
     
     if j == 1
         if dorefline
-            l = refline([0 ref]);
-            set(l, 'color', reflinecol, 'linestyle', reflinestyle, 'linewidth', line_ref);
+            for ii = 1:numel(ref)
+                l = refline([0 ref(ii)]);
+                set(l, 'color', reflinecol, 'linestyle', reflinestyle, 'linewidth', line_ref);
+            end
         end
     end
 end
