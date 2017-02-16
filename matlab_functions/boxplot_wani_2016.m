@@ -75,6 +75,11 @@ reflinecol = [.7 .7 .7];
 boxlinestyle = {'-'};
 mdcol = [0.7608 0.3020 0];
 usesamefig = false;
+facealpha = 1;
+doviolin = 0;
+dodots = 0;
+dot_size = 40;
+dot_alpha = .4;
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -82,7 +87,10 @@ for i = 1:length(varargin)
             % functional commands
             case {'color', 'colors'}
                 colud2 = flipud(varargin{i+1}); 
-                colud = colud2;
+                colud = repmat(colud2, 100, 1);
+                colud3 = flipud(colud2); 
+            case {'box_trans'}
+                facealpha = varargin{i+1};
             case {'refline'}
                 dorefline = 1;
                 ref = varargin{i+1};
@@ -91,7 +99,8 @@ for i = 1:length(varargin)
             case {'boxlinewidth'}
                 line_box  = varargin{i+1};
             case {'boxlinecolor'}
-                colud  = flipud(varargin{i+1});
+                colud = repmat(flipud(varargin{i+1}), 100, 1);
+                
             case {'reflinewidth'}
                 line_ref  = varargin{i+1};
             case {'reflinestyle'}
@@ -112,6 +121,14 @@ for i = 1:length(varargin)
                 line_md = varargin{i+1};
             case {'samefig'}
                 usesamefig = true;
+            case {'violin'}
+                doviolin = 1;
+            case {'dots'}
+                dodots = 1;
+            case {'dot_alpha'}
+                dot_alpha = varargin{i+1};
+            case {'dot_size'}
+                dot_size = varargin{i+1};
         end
     end
 end
@@ -121,9 +138,11 @@ if ~usesamefig
 end
 boxplot(x); % using boxplot default
 
-h = get(get(gca, 'children'), 'children');
+% h = get(get(gca, 'children'), 'children');
+h = findobj(gca, 'Tag', 'Box');
 
 k=0;
+% if iscell(h), h = h{1}; end
 for i = 1:length(h) 
     if isequal(get(h(i), 'color'), [0 0 1])
         k = k+1;
@@ -136,7 +155,7 @@ clf;
 
 for j = 1:2 % just twice
     for i = 1:numel(patchdata.x)
-        patch(patchdata.x{i}, patchdata.y{i}, colud2(i,:), 'EdgeColor', colud2(i,:));
+        patch(patchdata.x{i}, patchdata.y{i}, colud2(i,:), 'EdgeColor', colud2(i,:), 'FaceAlpha', facealpha);
     end
     
     hold on;
@@ -144,8 +163,8 @@ for j = 1:2 % just twice
     set(gca, 'fontSize', font_size, 'lineWidth', line_axis, 'xlim', ...
         [0.2 coln+.8], 'XTickLabelMode', 'auto', 'XTickMode', 'auto');
     set(gcf, 'position', [50   159   105*coln   291]);
-    h = get(get(gca, 'children'), 'children');
-    h = h{1};
+    h = findobj(gca, 'Type', 'Line');
+    %h = h{1};
     k=0;
     for i = 1:length(h) 
         set(h(i), 'lineWidth', line_etc)
@@ -165,10 +184,6 @@ for j = 1:2 % just twice
         if strcmp(h(i).Tag, 'Outliers')
             set(h(i), 'marker', '.', 'markerSize', dotsize, 'MarkerEdgeColor', dotcolor)
         end
-        
-        if isequal(get(h(i), 'color'), [1 0 0])
-            set(h(i), 'color', mdcol, 'linewidth', line_md, 'linestyle', '-');
-        end
     end
     
     if j == 1
@@ -181,8 +196,119 @@ for j = 1:2 % just twice
     end
 end
 
+
+if doviolin
+    x_cell = enforce_cell_array(x);
+    hold on;
+    violinplot(x_cell, 'facecolor', colud3, 'edgecolor', colud3, ...
+        'x', 1:numel(x_cell), 'mc', 'none', 'medc', mdcol, 'nopoints', 'facealpha', 0, 'linewidth', 2);
+    legend off
+end
+
+if dodots
+    x_cell = enforce_cell_array(x);
+    xvalues = get_violin_points(1:numel(x), x);
+    
+    for i = 1:numel(xvalues)
+        scatter(xvalues{i}, x_cell{i}, dot_size, colud3(i,:), 'filled', 'MarkerFaceAlpha', dot_alpha);
+    end
+end
+
+hh = findobj('Tag', 'Median');
+
+for i = 1:numel(hh)
+    set(hh(i), 'color', mdcol, 'linewidth', line_md, 'linestyle', '-');
+end
+
 set(gca, 'xtick', find(sum(isnan(x))~=size(x,1)), 'xticklabel', ' ',...
     'box', 'off',  'TickLength', [.015 .015], 'TickDir', 'out');
 
 end
 
+
+function Y = enforce_cell_array(Y)
+
+k = size(Y, 2);
+
+if ~iscell(Y)
+    for i = 1:k
+        Ytmp{i} = Y(:, i);
+        Ytmp{i}(isnan(Ytmp{i})) = [];
+    end
+    Y = Ytmp;
+end
+end % function
+
+
+function xvalues = get_violin_points(x, Y)
+% x = vector of x positions for each "column"
+% Y = cell array of input data, one cell per "column"
+%
+% from violinplot.m
+
+nbins = 10;
+
+k = size(Y, 2);
+
+xvalues = cell(1, k);
+
+% Enforce cell, no NaNs
+% ------------------------------------------------
+Y = enforce_cell_array(Y);
+
+% calculate  density values
+% ------------------------------------------------
+for i = 1:k
+    
+    [f, u, bb]=ksdensity(Y{i});
+    
+    f=f/max(f)*0.3; %normalize
+    F(:,i) = f;
+    U(:,i) = u;
+    
+end
+
+% get x positions
+% ------------------------------------------------
+
+for i = 1:k
+    
+    myx = x(i);     % x-value for this bar in plot
+    
+    myU = U(:, i);  % x-values of ksdensity output
+    myF = F(:, i);  % y-values (density) of ksdensity output
+    
+    myY = Y{i};     % data points
+    mybins = linspace(min(myY), max(myY), nbins);
+    
+    % starting and ending values
+    st = [-Inf mybins(1:end-1)];
+    en = [mybins];
+    
+    for j = 1:nbins
+        % define points within a bin or 'slab'
+        
+        whpoints = myY > st(j) & myY <= en(j);
+        
+        if sum(whpoints) == 0, continue, end
+        
+        whu = myU > st(j) & myU <= en(j);
+        
+        mylimit(j) = nanmean(myF(whu))/1.5;  % average density for this 'slab' of points
+        
+        my_xvals = linspace(myx - mylimit(j), myx + mylimit(j), sum(whpoints))';
+        
+        if length(my_xvals) == 1, my_xvals = myx;  end
+        
+        ylocs = myY(whpoints);
+        
+        xlocs = my_xvals(1:length(ylocs));
+        
+        % save in original point list
+        xvalues{i}(whpoints, 1) = xlocs;
+        
+    end % slab
+    
+end % column
+
+end % function

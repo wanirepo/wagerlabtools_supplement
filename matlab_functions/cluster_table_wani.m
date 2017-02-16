@@ -325,11 +325,16 @@ else
     % -----------------------------------------------------------------------------------
     
     % ========= Wani's additional setting
-    atlas_basedir = '/Users/clinpsywoo/Documents/MATLAB/3aal_for_spm8';
-    atlas = fullfile(atlas_basedir, 'ROI_MNI_V4.nii');
+%     atlas_basedir = '/Users/clinpsywoo/Documents/MATLAB/3aal_for_spm8';
+%     atlas = fullfile(atlas_basedir, 'ROI_MNI_V4.nii');
+%     MNID = spm_vol(atlas);
+%     load(fullfile(atlas_basedir, 'ROI_MNI_V4_Border.mat'));
+%     load(fullfile(atlas_basedir, 'ROI_MNI_V4_List.mat'));
+    
+    atlas = which('ROI_MNI_V4.nii');
     MNID = spm_vol(atlas);
-    load(fullfile(atlas_basedir, 'ROI_MNI_V4_Border.mat'));
-    load(fullfile(atlas_basedir, 'ROI_MNI_V4_List.mat'));
+    load(which('ROI_MNI_V4_Border.mat'));
+    load(which('ROI_MNI_V4_List.mat'));
     MNIY = spm_read_vols(MNID);
     fact = 1;
     

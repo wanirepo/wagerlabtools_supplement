@@ -55,6 +55,7 @@ ind_linewidth = 1;
 ind_linestyle = '-';
 
 dogrp = true;
+doindline = true;
 grp_colors = [0 0 0];
 grp_linewidth = 2;
 grp_linestyle = '-';
@@ -64,6 +65,11 @@ subjn = numel(X);
 X_cov = cell(subjn,1);
 covariates= cell(subjn,1);
 dosamefig = 0;
+
+dogrpseband = false;
+dogrpseline = false;
+
+grp_selinestyle = '-';
 
 for i = 1:subjn, covariates{i} = []; end
 
@@ -89,6 +95,14 @@ for i = 1:length(varargin)
                 dosamefig = 1;
             case {'nogrp'}
                 dogrp = false;
+            case {'grpseband'}
+                dogrpseband = true;
+            case {'grpseline'}
+                dogrpseline = true;
+            case {'grp_selinestyle'}
+                grp_selinestyle = varargin{i+1};
+            case {'noind'}
+                doindline = false;
         end
     end
 end
@@ -122,7 +136,9 @@ for i = 1:subjn
         covmean{i} = newX(2,:);
     end
     
-    h.ind(i,1) = line(stats.newX{i}, stats.newY{i}, 'color', ind_colors, 'linewidth', ind_linewidth, 'linestyle', ind_linestyle);
+    if doindline
+        h.ind(i,1) = line(stats.newX{i}, stats.newY{i}, 'color', ind_colors, 'linewidth', ind_linewidth, 'linestyle', ind_linestyle);
+    end
 end
 
 stats.glmfit_multilevel_stats = glmfit_multilevel(Y, X_cov, [], 'weighted', 'verbose');
@@ -135,9 +151,76 @@ else
     stats.grpY = stats.glmfit_multilevel_stats.mean*[ones(1,2); stats.grpX; mean(cat(1,covmean{:}))];
 end
 
+if dogrpseband && dogrpseline
+    h.grp = plot_grperrorband(stats.glmfit_multilevel_stats.first_level.beta, ...
+        stats.glmfit_multilevel_stats.W, stats.grpX, grp_colors, grp_selinestyle, 'fill', 'line');
+elseif ~dogrpseband && dogrpseline
+    h.grp = plot_grperrorband(stats.glmfit_multilevel_stats.first_level.beta, ...
+        stats.glmfit_multilevel_stats.W, stats.grpX, grp_colors, grp_selinestyle, 'line');
+elseif dogrpseband && ~dogrpseline
+    h.grp = plot_grperrorband(stats.glmfit_multilevel_stats.first_level.beta, ...
+        stats.glmfit_multilevel_stats.W, stats.grpX, grp_colors, grp_selinestyle, 'fill');
+end
+
 if dogrp
     h.grp = line(stats.grpX, stats.grpY, 'color', grp_colors, 'linewidth', grp_linewidth, 'linestyle', grp_linestyle);
 end
+
+end
+
+
+function h = plot_grperrorband(betas, w, x, color, linestyle, varargin)
+
+doline = false;
+dofill = false;
+
+for i = 1:length(varargin)
+    if ischar(varargin{i})
+        switch varargin{i}
+            % functional commands
+            case {'line'}
+                doline = true;
+            case {'fill'}
+                dofill = true;
+        end
+    end
+end
+
+% mean line
+wmean = @(paths, w) ((w ./ sum(w))'*paths)';
+% means = wmean(betas', w); % should be slope then intercept
+% y = means(1) + means(2) * x; % mean(2) is slope, and mean(1) is intercept
+
+% SE lines (bootstrapped; multilevel)
+xx = linspace(x(1), x(2), 50);
+
+boots = 5000;
+means =  bootstrp(boots, wmean, betas', w);
+yy = zeros(boots, 50);
+for i = 1:boots
+    yy(i,:) = means(i, 2) * xx + means(i, 1);
+end
+
+ub = prctile(yy, 95);
+lb = prctile(yy, 5);
+
+if doline    
+    h.ub = plot(xx, ub, 'color', color, 'LineWidth', 1.5, 'linestyle', linestyle);
+    h.lb = plot(xx, lb, 'color', color, 'LineWidth', 1.5, 'linestyle', linestyle);
+end
+
+if dofill
+    h.fhan = fill([xx xx(end:-1:1)], [lb ub(end:-1:1)], color);
+    h.fhan.LineStyle = 'none';
+    set(h.fhan, 'FaceAlpha', .3)
+end
+
+% plot(x, y, '-', 'Color', 'k', 'LineWidth', 3);
+
+% xb = mean(x); s = resid. std. stat.se(2) is se of slope
+%se_mean = (stat.se(2).^2 * (xx-xb).^2 + s.^2/length(x)) .^ .5;
+
+% drawnow
 
 end
 
