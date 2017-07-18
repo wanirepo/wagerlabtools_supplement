@@ -5,7 +5,7 @@ function boxplot_wani_2016(x, varargin)
 %
 % Usage:
 % -------------------------------------------------------------------------
-% boxplot_wani(x, varargin)
+% boxplot_wani_2016(x, varargin)
 %
 % Inputs:
 % -------------------------------------------------------------------------
@@ -28,10 +28,15 @@ function boxplot_wani_2016(x, varargin)
 % ['reflinewidth', line_ref]    scalar, linewidth for the refline
 % ['reflinestyle', reflinestyle]   '-', '--', ':', etc.
 % ['reflinecolor', reflinecol]  reflinecol: matrix of 3 x n (n columns)
-% ['dotcolor', dotcols]         dotcols: matrix of 3 x n (n columns)
-% ['dotsize', dotsize]          scalar, size of the outlier dots
+% ['dotcolor', dotcols]         outlier dot colors: dotcols = matrix of 3 x n (n columns)
+% ['dotsize', dotsize]          outlier dot size: dotsize = scalar, size of the outlier dots
 % ['mediancolor', mdcols]       mdcols: matrix of 3 x n (n columns)
 % ['medianlinewidth', line_md]  scalar, linewidth for the median line
+% ['samefig']                   
+% ['violin']                    draw violin plot (only line)
+% ['dots']                      data dots: show data dots
+% ['dot_alpha', alpha]          data dots: alpha for data dots, default = .4
+% ['dot_size', dot_size]        data dot size: dot_size = scalar, default = 40
 %
 % example:
 % 
@@ -43,9 +48,11 @@ function boxplot_wani_2016(x, varargin)
 %     0.5843    0.2157    0.2078];
 %
 % % example 1
-% boxplot_wani(x, 'color', col, 'refline', 0.5);
+% boxplot_wani_2016(x, 'color', col, 'refline', 0.5);
 % % example 2 : with thiner lines
-% boxplot_wani(x, 'color', col, 'refline', 0.5, 'linewidth', 2, 'boxlinewidth', 3);
+% boxplot_wani_2016(x, 'color', col, 'refline', 0.5, 'linewidth', 2, 'boxlinewidth', 3);
+% % example 3 : with violin plot and data dots
+% boxplot_wani_2016(x, 'color', col, 'refline', 0.5, 'linewidth', 2, 'boxlinewidth', 3, 'violin', 'dots');
 %
 % savename = 'example_box.pdf';
 % 
