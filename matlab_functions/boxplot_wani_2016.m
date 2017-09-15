@@ -37,6 +37,8 @@ function boxplot_wani_2016(x, varargin)
 % ['dots']                      data dots: show data dots
 % ['dot_alpha', alpha]          data dots: alpha for data dots, default = .4
 % ['dot_size', dot_size]        data dot size: dot_size = scalar, default = 40
+% ['bw', bw]                    bandwidth of violin plot, default = [];
+% ['data_dotcolor', color]      datapoint dot colors
 %
 % example:
 % 
@@ -87,6 +89,8 @@ doviolin = 0;
 dodots = 0;
 dot_size = 40;
 dot_alpha = .4;
+bw = [];
+data_dotcolor = [];
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -136,6 +140,10 @@ for i = 1:length(varargin)
                 dot_alpha = varargin{i+1};
             case {'dot_size'}
                 dot_size = varargin{i+1};
+            case {'bw'}
+                bw = varargin{i+1};
+            case {'data_dotcolor'}
+                data_dotcolor = varargin{i+1};
         end
     end
 end
@@ -207,8 +215,13 @@ end
 if doviolin
     x_cell = enforce_cell_array(x);
     hold on;
-    violinplot(x_cell, 'facecolor', colud3, 'edgecolor', colud3, ...
-        'x', 1:numel(x_cell), 'mc', 'none', 'medc', mdcol, 'nopoints', 'facealpha', 0, 'linewidth', 2);
+    if ~isempty(bw)
+        violinplot(x_cell, 'facecolor', colud3, 'edgecolor', colud3, ...
+            'x', 1:numel(x_cell), 'mc', 'none', 'medc', mdcol, 'nopoints', 'facealpha', 0, 'linewidth', 2, 'bw', bw);
+    else
+        violinplot(x_cell, 'facecolor', colud3, 'edgecolor', colud3, ...
+            'x', 1:numel(x_cell), 'mc', 'none', 'medc', mdcol, 'nopoints', 'facealpha', 0, 'linewidth', 2);
+    end
     legend off
 end
 
@@ -217,7 +230,10 @@ if dodots
     xvalues = get_violin_points(1:numel(x), x);
     
     for i = 1:numel(xvalues)
-        scatter(xvalues{i}, x_cell{i}, dot_size, colud3(i,:), 'filled', 'MarkerFaceAlpha', dot_alpha);
+        if isempty(data_dotcolor)
+            data_dotcolor = colud3(i,:);
+        end
+        scatter(xvalues{i}, x_cell{i}, dot_size, data_dotcolor, 'filled', 'MarkerFaceAlpha', dot_alpha);
     end
 end
 
