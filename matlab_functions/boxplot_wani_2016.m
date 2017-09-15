@@ -217,10 +217,10 @@ if doviolin
     hold on;
     if ~isempty(bw)
         violinplot(x_cell, 'facecolor', colud3, 'edgecolor', colud3, ...
-            'x', 1:numel(x_cell), 'mc', 'none', 'medc', mdcol, 'nopoints', 'facealpha', 0, 'linewidth', 2, 'bw', bw);
+            'x', 1:numel(x_cell), 'mc', [0.3686    0.3098    0.6353], 'medc', mdcol, 'nopoints', 'facealpha', 0, 'linewidth', 2, 'bw', bw);
     else
         violinplot(x_cell, 'facecolor', colud3, 'edgecolor', colud3, ...
-            'x', 1:numel(x_cell), 'mc', 'none', 'medc', mdcol, 'nopoints', 'facealpha', 0, 'linewidth', 2);
+            'x', 1:numel(x_cell), 'mc', [0.3686    0.3098    0.6353], 'medc', mdcol, 'nopoints', 'facealpha', 0, 'linewidth', 2);
     end
     legend off
 end
