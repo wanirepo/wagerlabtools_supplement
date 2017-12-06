@@ -1,4 +1,4 @@
-function visualize_network(A, varargin)
+function visualize_network_webweb(A, varargin)
 
 % visualize_network(A, varargin)
 %
