@@ -1,4 +1,4 @@
-function visualize_network(A, varargin)
+function visualize_network_webweb(A, varargin)
 
 % visualize_network(A, varargin)
 %
@@ -11,7 +11,7 @@ function visualize_network(A, varargin)
 % case {'value_names'}
 
 
-webwebdir = '/Users/clinpsywoo/Documents/MATLAB/network_tools/webweb_v3.2';
+webwebdir = '/Users/clinpsywoo/Dropbox/MATLAB/network_tools/webweb_v3.2';
 
 vis_groups = false;
 vis_values = false;
