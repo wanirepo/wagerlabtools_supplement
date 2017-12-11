@@ -31,6 +31,9 @@ for i = 1:numel(data)
             L2Mdat = ['model' num2str(ii) '_L2M.' dat_res{jj} '(first_idx:last_idx,:) = model' num2str(ii) '.L2M.' dat_res{jj} '(first_idx:last_idx,:);'];
             eval(['if any(~cellfun(@isempty, strfind(fields(model' num2str(ii) '), ''L2M''))), eval(L2Mdat); end']);
         end
+        
+        firstlevel = ['model' num2str(ii) '_dat.firstlevelpaths(first_idx:last_idx,:,:) = model' num2str(ii) '.firstlevelpaths(first_idx:last_idx,:,:);'];
+        eval(['if any(~cellfun(@isempty, strfind(fields(model' num2str(ii) '), ''firstlevelpaths''))), eval(firstlevel); end']);
     end
 end
 
@@ -53,29 +56,42 @@ for i = 1:modeln
     cd(modeldir{i});
     twomed = strfind(models.fns{i}, 'mediation(');
     threemed = strfind(models.fns{i}, 'mediation_threepaths(');
-    eval(['field_name = fields(model' num2str(i) '_dat);']);
-    isL2M = any(~cellfun(@isempty, strfind(fields(model1), 'L2M')));
+    field_name = {'p', 'beta', 'ste'};
+    % eval(['field_name = fields(model' num2str(i) '_dat);']);
+    eval(['isL2M = any(~cellfun(@isempty, strfind(fields(model' num2str(i) '), ''L2M'')));']);
+    eval(['isfirstlevel = any(~cellfun(@isempty, strfind(fields(model' num2str(i) '), ''firstlevelpaths'')));']);
     
     for ii = 1:numel(models.savepaths{i})
         for jj = 1:numel(field_name)
             eval(['data.dat = model' num2str(i) '_dat.' field_name{jj} '(:,' num2str(ii) ');']);
             if twomed == 1
-                data.fullpath = fullfile(modeldir{i}, [pathname_twomed{models.savepaths{i}(ii)} compname{jj} '.img']);
+                data.fullpath = fullfile(modeldir{i}, [pathname_twomed{models.savepaths{i}(ii)} compname{jj} '.nii']);
             elseif threemed == 1
-                data.fullpath = fullfile(modeldir{i}, [pathname_threemed{models.savepaths{i}(ii)} compname{jj} '.img']);
+                data.fullpath = fullfile(modeldir{i}, [pathname_threemed{models.savepaths{i}(ii)} compname{jj} '.nii']);
             end
             write(data);
             
-            if isL2M == 1
+            if isL2M
                 eval(['data.dat = model' num2str(i) '_L2M.' field_name{jj} '(:,' num2str(ii) ');']);
                 if twomed == 1
-                    data.fullpath = fullfile(modeldir{i}, [pathname_twomed{models.savepaths{i}(ii)} '_L2M' compname{jj} '.img']);
+                    data.fullpath = fullfile(modeldir{i}, [pathname_twomed{models.savepaths{i}(ii)} '_L2M' compname{jj} '.nii']);
                 elseif threemed == 1
-                    data.fullpath = fullfile(modeldir{i}, [pathname_threemed{models.savepaths{i}(ii)} '_L2M' compname{jj} '.img']);
+                    data.fullpath = fullfile(modeldir{i}, [pathname_threemed{models.savepaths{i}(ii)} '_L2M' compname{jj} '.nii']);
                 end
                 write(data);
             end
             
+        end
+        
+        if isfirstlevel
+            
+            eval(['data.dat = squeeze(model' num2str(i) '_dat.firstlevelpaths(:,' num2str(ii) ',:));']);
+            if twomed == 1
+                data.fullpath = fullfile(modeldir{i}, ['firstlevel_' pathname_twomed{models.savepaths{i}(ii)} 'betas.nii']);
+            elseif threemed == 1
+                data.fullpath = fullfile(modeldir{i}, ['firstlevel_' pathname_threemed{models.savepaths{i}(ii)} 'betas.nii']);
+            end
+            write(data);
             
         end
     end
