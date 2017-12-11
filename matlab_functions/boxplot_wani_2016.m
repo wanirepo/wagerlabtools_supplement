@@ -91,6 +91,7 @@ dot_size = 40;
 dot_alpha = .4;
 bw = [];
 data_dotcolor = [];
+use_onedotcolor = false;
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -144,6 +145,7 @@ for i = 1:length(varargin)
                 bw = varargin{i+1};
             case {'data_dotcolor'}
                 data_dotcolor = varargin{i+1};
+                use_onedotcolor = true;
         end
     end
 end
@@ -234,7 +236,7 @@ if dodots
     xvalues = get_violin_points(1:numel(x), x);
     
     for i = 1:numel(xvalues)
-        if isempty(data_dotcolor)
+        if ~use_onedotcolor
             data_dotcolor = colud3(i,:);
         end
         scatter(xvalues{i}, x_cell{i}, dot_size, data_dotcolor, 'filled', 'MarkerFaceAlpha', dot_alpha);

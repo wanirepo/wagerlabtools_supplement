@@ -92,6 +92,7 @@ for distjob = 1:size(j,1)
     fprintf(FID, '\t\t%% data chunking\n');
     
     fprintf(FID, '\t\tif iscell(med_vars.imgs)\n');
+    fprintf(FID, '\t\t\tsubjn = numel(med_vars.imgs);\n');
     fprintf(FID, '\t\t\tfor i = 1:numel(med_vars.imgs)\n');
     fprintf(FID, '\t\t\t\tdat{i} = fmri_data(med_vars.imgs{i}, mask);\n');
     fprintf(FID, '\t\t\t\tif ii ~= iter\n');
@@ -99,7 +100,7 @@ for distjob = 1:size(j,1)
     fprintf(FID, '\t\t\t\telseif ii == iter\n');
     fprintf(FID, '\t\t\t\t\tdat{i}.dat = dat{i}.dat((chunk*ii-chunk+1):end,:);\n');
     fprintf(FID, '\t\t\t\tend\n');
-    fprintf(FID, '\t\tend\n');
+    fprintf(FID, '\t\t\tend\n');
     fprintf(FID, '\t\telseif ischar(med_vars.imgs) %% single level\n');
     fprintf(FID, '\t\t\tdat = fmri_data(med_vars.imgs, mask);\n');
     fprintf(FID, '\t\t\tif ii ~= iter\n');
@@ -134,6 +135,8 @@ for distjob = 1:size(j,1)
     fprintf(FID, '\t\t\t\teval([''model'' num2str(kk) ''.p((chunk*ii-chunk+1)+i-1,1:numel(models.savepaths{kk})) = stats.p(1,['' num2str(models.savepaths{kk}) '']);'']);\n');
     fprintf(FID, '\t\t\t\teval([''model'' num2str(kk) ''.beta((chunk*ii-chunk+1)+i-1,1:numel(models.savepaths{kk})) = stats.mean(1,['' num2str(models.savepaths{kk}) '']);'']);\n');
     fprintf(FID, '\t\t\t\teval([''model'' num2str(kk) ''.ste((chunk*ii-chunk+1)+i-1,1:numel(models.savepaths{kk})) = stats.ste(1,['' num2str(models.savepaths{kk}) '']);'']);\n');
+    fprintf(FID, '\t\t\t\teval([''model'' num2str(kk) ''.firstlevelpaths((chunk*ii-chunk+1)+i-1,1:numel(models.savepaths{kk}), 1:subjn) = stats.paths(:,['' num2str(models.savepaths{kk}) ''])'''';'']);\n');
+    
     fprintf(FID, '\t\t\t\tif strfind(models.fns{kk}, ''L2M'')\n');
     fprintf(FID, '\t\t\t\t\teval([''model'' num2str(kk) ''.L2M.p((chunk*ii-chunk+1)+i-1,1:numel(models.savepaths{kk})) = stats.p(2,['' num2str(models.savepaths{kk}) '']);'']);\n');
     fprintf(FID, '\t\t\t\t\teval([''model'' num2str(kk) ''.L2M.beta((chunk*ii-chunk+1)+i-1,1:numel(models.savepaths{kk})) = stats.mean_L2M(2,['' num2str(models.savepaths{kk}) '']);'']);\n');
