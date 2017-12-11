@@ -17,8 +17,11 @@ addpath(study_scriptdir);
 % ===== saving mediation_SETUP files =====
 [basedir, scriptname] = fileparts(code_filename);
 if iscell(med_vars.imgs)
+    multilevel = true;
+    subjn = numel(med_vars.imgs);
     data = fmri_data(med_vars.imgs{1}(1,:), mask);
 elseif ischar(med_vars.imgs) % for the single level
+    multilevel = false;
     data = fmri_data(med_vars.imgs(1,:), mask);
 end
 data.dat = data.dat(:,1); % for 4-d images
@@ -34,6 +37,9 @@ for i = 1:modeln
     eval(['model' num2str(i) '.p = NaN(size(data.dat,1),' num2str(col_num) ');']);
     eval(['model' num2str(i) '.beta = NaN(size(data.dat,1),' num2str(col_num) ');']);
     eval(['model' num2str(i) '.ste = NaN(size(data.dat,1),' num2str(col_num) ');']);
+    if multilevel
+        eval(['model' num2str(i) '.firstlevelpaths = NaN(size(data.dat,1),' num2str(col_num) ', subjn);']);
+    end
     
     if strfind(models.fns{i}, 'L2M')
         eval(['model' num2str(i) '.L2M.p = NaN(size(data.dat,1),' num2str(col_num) ');']);
@@ -93,6 +99,7 @@ for distjob = 1:size(j,1)
     
     fprintf(FID, '\t\tif iscell(med_vars.imgs)\n');
     fprintf(FID, '\t\t\tsubjn = numel(med_vars.imgs);\n');
+    fprintf(FID, '\t\t\tmultilevel = true;\n');
     fprintf(FID, '\t\t\tfor i = 1:numel(med_vars.imgs)\n');
     fprintf(FID, '\t\t\t\tdat{i} = fmri_data(med_vars.imgs{i}, mask);\n');
     fprintf(FID, '\t\t\t\tif ii ~= iter\n');
@@ -102,6 +109,7 @@ for distjob = 1:size(j,1)
     fprintf(FID, '\t\t\t\tend\n');
     fprintf(FID, '\t\t\tend\n');
     fprintf(FID, '\t\telseif ischar(med_vars.imgs) %% single level\n');
+    fprintf(FID, '\t\t\tmultilevel = false;\n');
     fprintf(FID, '\t\t\tdat = fmri_data(med_vars.imgs, mask);\n');
     fprintf(FID, '\t\t\tif ii ~= iter\n');
     fprintf(FID, '\t\t\t\tdat.dat = dat.dat((chunk*ii-chunk+1):chunk*ii,:);\n');
@@ -135,8 +143,9 @@ for distjob = 1:size(j,1)
     fprintf(FID, '\t\t\t\teval([''model'' num2str(kk) ''.p((chunk*ii-chunk+1)+i-1,1:numel(models.savepaths{kk})) = stats.p(1,['' num2str(models.savepaths{kk}) '']);'']);\n');
     fprintf(FID, '\t\t\t\teval([''model'' num2str(kk) ''.beta((chunk*ii-chunk+1)+i-1,1:numel(models.savepaths{kk})) = stats.mean(1,['' num2str(models.savepaths{kk}) '']);'']);\n');
     fprintf(FID, '\t\t\t\teval([''model'' num2str(kk) ''.ste((chunk*ii-chunk+1)+i-1,1:numel(models.savepaths{kk})) = stats.ste(1,['' num2str(models.savepaths{kk}) '']);'']);\n');
-    fprintf(FID, '\t\t\t\teval([''model'' num2str(kk) ''.firstlevelpaths((chunk*ii-chunk+1)+i-1,1:numel(models.savepaths{kk}), 1:subjn) = stats.paths(:,['' num2str(models.savepaths{kk}) ''])'''';'']);\n');
-    
+    fprintf(FID, '\t\t\t\tif multilevel\n');
+    fprintf(FID, '\t\t\t\t\teval([''model'' num2str(kk) ''.firstlevelpaths((chunk*ii-chunk+1)+i-1,1:numel(models.savepaths{kk}), 1:subjn) = stats.paths(:,['' num2str(models.savepaths{kk}) ''])'''';'']);\n');
+    fprintf(FID, '\t\t\t\tend\n');
     fprintf(FID, '\t\t\t\tif strfind(models.fns{kk}, ''L2M'')\n');
     fprintf(FID, '\t\t\t\t\teval([''model'' num2str(kk) ''.L2M.p((chunk*ii-chunk+1)+i-1,1:numel(models.savepaths{kk})) = stats.p(2,['' num2str(models.savepaths{kk}) '']);'']);\n');
     fprintf(FID, '\t\t\t\t\teval([''model'' num2str(kk) ''.L2M.beta((chunk*ii-chunk+1)+i-1,1:numel(models.savepaths{kk})) = stats.mean_L2M(2,['' num2str(models.savepaths{kk}) '']);'']);\n');
