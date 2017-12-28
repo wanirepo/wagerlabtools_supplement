@@ -8,12 +8,19 @@ negcm = colormap_tor([0.11 0.46 1], [.23 1 1]);  % cools
 % h = add_surface(which('surf_BrainMesh_ICBM152.mat'));
 % set(h, 'FaceColor', [.7 .7 .7], 'FaceAlpha', .1);
 
-cluster_surf(cl ,which('surf_BrainMesh_ICBM152Right_smoothed.mat'), 2, 'heatmap', 'colormaps', poscm, negcm)
+cluster_surf(cl ,which('surf_workbench_very_inflated_32k_Left.mat'), 2, 'heatmap', 'colormaps', poscm, negcm)
+%cluster_surf(cl ,which('surf_workbench_very_inflated_32k_Right.mat'), 2, 'heatmap', 'colormaps', poscm, negcm)
+%cluster_surf(cl ,which('surf_workbench_inflated_32k_Left.mat'), 2, 'heatmap', 'colormaps', poscm, negcm)
+%cluster_surf(cl ,which('surf_workbench_inflated_32k_Right.mat'), 2, 'heatmap', 'colormaps', poscm, negcm)
+
+%cluster_surf(cl ,which('surf_BrainMesh_ICBM152Right_smoothed.mat'), 2, 'heatmap', 'colormaps', poscm, negcm)
 %cluster_surf(clusters1,'surf_parahippo_havardoxford_20_l.mat', 2, 'heatmap', 'colormaps', poscm, negcm)
 
 h = get(gca, 'children');
 set(h(2), 'FaceAlpha', .5);
+% set(h(2), 'FaceAlpha', 1);
 set(h(2), 'AmbientStrength', .5)
+% set(h(2), 'AmbientStrength', 1)
 
 axis vis3d;
 

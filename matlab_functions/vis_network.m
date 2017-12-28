@@ -1,4 +1,4 @@
-function h = vis_network(A, varargin)
+function h = vis_network(W, varargin)
 
 % under construction
 

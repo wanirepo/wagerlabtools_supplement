@@ -1,4 +1,4 @@
-function h = glass_brain_network(r, varargin)
+function out = glass_brain_network(r, varargin)
 
 % This function draws glass brain with nodes and edges for the whole brain.
 %
@@ -90,8 +90,10 @@ do_highlight = false;
 cortex_alpha = 0.03;
 cerebellum_alpha = .1;
 
-pos_edge_color = [0.8353  0.2431  0.3098];
-neg_edge_color = [0    0.3333    0.6627];
+pos_edge_color = [215,25,28]./255;
+neg_edge_color = [43,131,186]./255;
+% pos_edge_color = 'r';
+% neg_edge_color = 'b';
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -107,6 +109,7 @@ for i = 1:length(varargin)
                 group_cols = varargin{i+1};
             case {'edge_weights'}
                 w = varargin{i+1};
+                w(logical(eye(size(w,1)))) = 0; % remove diagonal
             case {'hl_node_edge'}
                 do_highlight = true;
                 radius_hl = varargin{i+1};
@@ -126,6 +129,8 @@ for i = 1:length(varargin)
                 pos_edge_color = varargin{i+1};
             case {'neg_edge_color'}
                 neg_edge_color = varargin{i+1};
+            case {'norm_factor'}
+                normfactor_input = varargin{i+1};
                 
         end
     end
@@ -177,6 +182,8 @@ for i = 2:3
     end
 end
 
+out.h1 = h;
+
 axis vis3d;
 
 centers = cat(1,r.mm_center);
@@ -204,6 +211,8 @@ for i = 1:size(centers,1)
     
 end
 
+out.h2 = h;
+
 %% draw edges
 
 [a,b] = find(w~=0);
@@ -226,10 +235,11 @@ all_ab = [pos_ab; neg_ab];
 
 if do_pos && ~isempty(pos_ab)
     
-    l2normfactor = l2normfun(all_ab(:,3))./sqrt(size(all_ab,1));
+    normfactor = l2normfun(all_ab(:,3))./sqrt(size(all_ab,1));
+    if ~isempty(normfactor_input), normfactor = normfactor_input; end
     
     % norm_lw = ((pos_ab(:,3)-min(pos_ab(:,3)))/max(pos_ab(:,3))+1).^3;
-    norm_lw = (pos_ab(:,3)./l2normfactor).*3;
+    norm_lw = (pos_ab(:,3)./normfactor).*3;
     
     for i = 1:size(pos_ab,1)
         
@@ -243,19 +253,21 @@ end
 
 if do_neg && ~isempty(neg_ab)
     
-    l2normfactor = l2normfun(all_ab(:,3))./sqrt(size(all_ab,1));
+    normfactor = l2normfun(all_ab(:,3))./sqrt(size(all_ab,1));
+    if ~isempty(normfactor_input), normfactor = normfactor_input; end
     
     % norm_lw = ((-neg_ab(:,3)-min(-neg_ab(:,3)))/max(-neg_ab(:,3))+1).^3;
-    norm_lw = (neg_ab(:,3)./l2normfactor).*3;
+    norm_lw = (neg_ab(:,3)./normfactor).*3;
     
     for i = 1:size(neg_ab,1)
     
         hold on;
         xyz = [centers(neg_ab(i,1),:); centers(neg_ab(i,2),:)];
 %         line(xyz(:,1),xyz(:,2),xyz(:,3), 'color', 'b', 'linewidth', -neg_ab(i,3)*30000);
-        line(xyz(:,1),xyz(:,2),xyz(:,3), 'color', neg_edge_color, 'linewidth', norm_lw(i));
+        line(xyz(:,1),xyz(:,2),xyz(:,3), 'color', neg_edge_color, 'linewidth', -norm_lw(i));
         
     end
 end
+
 
 end
