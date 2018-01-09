@@ -57,6 +57,7 @@ docolorbar = 0;
 dolines_1st = 1;
 dolines_2nd = 1;
 dolines_out = 1;
+do_triangle = 0;
 
 lcolor = [.7 .7 .7; .3 .3 .3; 0 0 0];
 lwidth = [0.5 1 1.5]; % one five outline
@@ -68,6 +69,7 @@ glcolor = [1 0 0];
 glwidth = 2;
 display_group_mean = 0;
 display_group_sum = 0;
+display_group_color = 0;
 dosmooth = 0;
 
 r_descript = 'input r';
@@ -103,13 +105,18 @@ for i = 1:length(varargin)
             case {'group_linewidth'}
                 glwidth = varargin{i+1};
             case {'group_mean'}
-                display_group_mean = 1; % upper triangle: group mean
+                display_group_mean = 1; 
                 dogroupline = 0;
             case {'group_sum'}
                 display_group_sum = 1;
                 dogroupline = 0;
+            case {'group_color'}
+                display_group_color = 1; 
+                group_color = varargin{i+1};
             case {'smooth'}
                 dosmooth = 1; % 2d gaussian smoothing (imgaussfilt) with sigma = 1
+            case {'triangle'}
+                do_triangle = 1;
         end
     end
 end
@@ -241,6 +248,22 @@ if dogroupline
         
     end
     
+end
+
+if display_group_color
+    if ~display_group_mean && ~display_group_sum
+        error('The ''display_group_color'' option should be used with ''display_group_mean'' or ''display_group_sum'' options');
+    else
+        for i = 1:numel(u_group)
+            scatter(-.5, i, 1000, group_color(i,:), 'filled');
+            scatter(i, numel(u_group)+1.5, 1000, group_color(i,:), 'filled');
+        end
+    end
+end
+
+if do_triangle
+    patch([-1, size(r,1)+2, size(r,1)+2], [-1, -1, size(r,1)+2], 'w', 'edgecolor', 'w');
+    patch([.5, .5, size(r,1)+.5], [.5, size(r,1)+.5, size(r,1)+.5], 'w', 'edgecolor', 'k', 'facealpha', 0, 'LineWidth', 5);
 end
     
 out.h = h;

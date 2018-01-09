@@ -197,7 +197,7 @@ for j = 1:2 % just twice
     end
     
     for i = 1:length(h) %(3*coln)
-        set(h(i), 'lineWidth', line_etc)
+        % set(h(i), 'lineWidth', line_etc)
         
         if strcmp(h(i).Tag, 'Outliers')
             set(h(i), 'marker', '.', 'markerSize', dotsize, 'MarkerEdgeColor', dotcolor)
