@@ -26,8 +26,8 @@ end
 boot_vals = bootstrp(nboot, @mean, vals);
 out.bootmean = mean(boot_vals);
 out.bootste = std(boot_vals);
-out.bootZ = bootmean./bootste;
-out.bootP = 2 * (1 - normcdf(abs(bootZ)));
+out.bootZ = out.bootmean./out.bootste;
+out.bootP = 2 * (1 - normcdf(abs(out.bootZ)));
 
 if doverbose
     fprintf('\nTest results: mean = %1.4f, sem = %1.4f, z = %1.4f, p = %1.5f', mean(boot_vals), out.bootste, out.bootZ, out.bootP);
