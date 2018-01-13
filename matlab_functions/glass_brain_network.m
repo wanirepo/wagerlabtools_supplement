@@ -26,7 +26,7 @@ function out = glass_brain_network(r, varargin)
 %        draw nodes as 3d sphere. No need more inputs. 
 %   **radius**
 %        Node radius, default is 2. If you want to assign different radius
-%        to different groups, you can make a vector of radii [group# x 1]. 
+%        to different groups, you can make a vector of radii [#group x 1]. 
 %           e.g., 'radius', 3
 %   **colors**
 %        If you want to use one color for all regions, you can put one
@@ -38,8 +38,12 @@ function out = glass_brain_network(r, varargin)
 %        should be same with the number of regions.
 %           e.g., 'group', group_indices
 %   **edge_weights**
-%        edge weights, if you want to draw edges. 
+%        edge weights, if you want to draw edges. This can be multiple weights
+%        in a cell array
 %           e.g., 'edge_weights', w
+%   **edge_alpha**
+%        edge alpha. This can be cell array.
+%           e.g., 'edge_alpha', .3
 %   **hl_node_edge**
 %        highlight the only nodes that have edges. This needs three more 
 %        inputs. The first one is the radius for highlighted regions. The
@@ -54,11 +58,13 @@ function out = glass_brain_network(r, varargin)
 %        No need more input.
 %   **pos_edge_color**
 %        If you want to use a specific color for positive edges, use this
-%        option.
+%        option. This can be cell array with multiple colors for different 
+%        weight sets. 
 %           e.g., 'pos_edge_color', [1 0 0]
 %   **neg_edge_color**
 %        If you want to use a specific color for negative edges, use this
-%        option.
+%        option. This can be cell array with multiple colors for different 
+%        weight sets. 
 %           e.g., 'neg_edge_color', [0 0 1]
 %   **cortex_alpha**
 %        You can adjust the alpha value for the cortex using this option.
@@ -84,14 +90,16 @@ color_unhl = [.3 .3 .3];
 
 do_pos = true;
 do_neg = true;
-w = zeros(n_region, n_region);
+%w = zeros(n_region, n_region);
 do_highlight = false;
 
 cortex_alpha = 0.03;
 cerebellum_alpha = .1;
+normfactor_input = [];
 
 pos_edge_color = [215,25,28]./255;
 neg_edge_color = [43,131,186]./255;
+edge_alpha = 1;
 % pos_edge_color = 'r';
 % neg_edge_color = 'b';
 
@@ -108,8 +116,7 @@ for i = 1:length(varargin)
             case {'colors'}
                 group_cols = varargin{i+1};
             case {'edge_weights'}
-                w = varargin{i+1};
-                w(logical(eye(size(w,1)))) = 0; % remove diagonal
+                w_cell = varargin{i+1};
             case {'hl_node_edge'}
                 do_highlight = true;
                 radius_hl = varargin{i+1};
@@ -129,9 +136,10 @@ for i = 1:length(varargin)
                 pos_edge_color = varargin{i+1};
             case {'neg_edge_color'}
                 neg_edge_color = varargin{i+1};
+            case {'edge_alpha'}
+                edge_alpha = varargin{i+1};
             case {'norm_factor'}
                 normfactor_input = varargin{i+1};
-                
         end
     end
 end
@@ -149,7 +157,14 @@ catch
 end
 
 if do_highlight
-    
+    if iscell(w_cell)
+        w  = zeros(size(w_cell{1}));
+        for i = 1:numel(w_cell)
+            w = w + w_cell{i};
+        end
+    else
+        w = w_cell;
+    end
     if issymmetric(w) && do_pos && ~do_neg
         w_temp = w .* double(w > 0);
     elseif issymmetric(w) && ~do_pos && do_neg
@@ -215,6 +230,32 @@ out.h2 = h;
 
 %% draw edges
 
+if exist('w_cell', 'var') 
+    if iscell(w_cell)
+        for i = 1:numel(w_cell)
+            w = w_cell{i};
+            
+            if iscell(pos_edge_color), pos_col = pos_edge_color{i}; else, pos_col = pos_edge_color; end
+            if iscell(neg_edge_color), neg_col = neg_edge_color{i}; else, neg_col = neg_edge_color; end
+            if iscell(edge_alpha), edge_alpha2 = edge_alpha{i}; else, edge_alpha2 = edge_alpha; end
+            
+            draw_edges(w, pos_col, neg_col, edge_alpha2, normfactor_input, do_pos, do_neg, centers);
+            hold on;
+        end
+    else
+        w = w_cell;
+        w(logical(eye(size(w,1)))) = 0; % remove diagonal
+        draw_edges(w, pos_edge_color, neg_edge_color, edge_alpha, normfactor_input, do_pos, do_neg, centers);
+    end
+end
+
+end
+
+% --------------- SUBFUNCTIONS --------------- 
+
+function draw_edges(w, pos_edge_color, neg_edge_color, edge_alpha, normfactor_input, do_pos, do_neg, centers)
+
+
 [a,b] = find(w~=0);
 
 pos_ab = [];
@@ -245,7 +286,7 @@ if do_pos && ~isempty(pos_ab)
         
         hold on;
         xyz = [centers(pos_ab(i,1),:); centers(pos_ab(i,2),:)];
-        line(xyz(:,1),xyz(:,2),xyz(:,3), 'color', pos_edge_color, 'linewidth', norm_lw(i));
+        line(xyz(:,1),xyz(:,2),xyz(:,3), 'color', [pos_edge_color edge_alpha], 'linewidth', norm_lw(i));
         
     end
     
@@ -260,14 +301,12 @@ if do_neg && ~isempty(neg_ab)
     norm_lw = (neg_ab(:,3)./normfactor).*3;
     
     for i = 1:size(neg_ab,1)
-    
+        
         hold on;
         xyz = [centers(neg_ab(i,1),:); centers(neg_ab(i,2),:)];
-%         line(xyz(:,1),xyz(:,2),xyz(:,3), 'color', 'b', 'linewidth', -neg_ab(i,3)*30000);
-        line(xyz(:,1),xyz(:,2),xyz(:,3), 'color', neg_edge_color, 'linewidth', -norm_lw(i));
+        %         line(xyz(:,1),xyz(:,2),xyz(:,3), 'color', 'b', 'linewidth', -neg_ab(i,3)*30000);
+        line(xyz(:,1),xyz(:,2),xyz(:,3), 'color', [neg_edge_color edge_alpha], 'linewidth', -norm_lw(i));
         
     end
 end
-
-
 end
