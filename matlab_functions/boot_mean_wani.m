@@ -1,6 +1,6 @@
-function out = boot_mean_wani(vals, nboot, varargin)
+function [out, boot_vals] = boot_mean_wani(vals, nboot, varargin)
 
-% function out = boot_mean_wani(vals, nboot)
+% function [out, boot_vals] = boot_mean_wani(vals, nboot, varargin)
 %
 % boot for mean
 %
@@ -28,6 +28,7 @@ out.bootmean = mean(boot_vals);
 out.bootste = std(boot_vals);
 out.bootZ = out.bootmean./out.bootste;
 out.bootP = 2 * (1 - normcdf(abs(out.bootZ)));
+out.ci95 = [prctile(boot_vals, 2.5); prctile(boot_vals, 97.5)];
 
 if doverbose
     fprintf('\nTest results: mean = %1.4f, sem = %1.4f, z = %1.4f, p = %1.5f', mean(boot_vals), out.bootste, out.bootZ, out.bootP);

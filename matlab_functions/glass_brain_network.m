@@ -82,8 +82,6 @@ function out = glass_brain_network(r, varargin)
 
 % default
 dosphere = false;
-n_region = numel(r);
-group = ones(n_region,1);
 group_radius = 2;
 group_cols = [.7 .7 .7];
 color_unhl = [.3 .3 .3];
@@ -102,6 +100,10 @@ neg_edge_color = [43,131,186]./255;
 edge_alpha = 1;
 % pos_edge_color = 'r';
 % neg_edge_color = 'b';
+cortex = which('surf_BrainMesh_ICBM152.mat');
+do_cerebellum = true;
+do_ellipsoid = false;
+node_alpha = 1;
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -111,8 +113,6 @@ for i = 1:length(varargin)
                 dosphere = true;
             case {'radius'}
                 group_radius = varargin{i+1};
-            case {'group'}
-                group = varargin{i+1};
             case {'colors'}
                 group_cols = varargin{i+1};
             case {'edge_weights'}
@@ -138,8 +138,48 @@ for i = 1:length(varargin)
                 neg_edge_color = varargin{i+1};
             case {'edge_alpha'}
                 edge_alpha = varargin{i+1};
+            case {'node_alpha'}
+                node_alpha = varargin{i+1};
             case {'norm_factor'}
                 normfactor_input = varargin{i+1};
+            case {'center'}
+                centers = varargin{i+1};
+                n_region = size(centers,1);
+            case {'inflated'}
+                cortex = which('surf_BrainMesh_ICBM152_smoothed.mat');
+            case {'left'}
+                cortex = which('surf_BrainMesh_ICBM152Left.mat');
+            case {'right'}
+                cortex = which('surf_BrainMesh_ICBM152Right.mat');
+            case {'left_inflated'}
+                cortex = which('surf_BrainMesh_ICBM152Left_smoothed.mat');
+            case {'right_inflated'}
+                cortex = which('surf_BrainMesh_ICBM152Right_smoothed.mat');
+            case {'very_inflated'}
+                cortex = which('surf_workbench_very_inflated_32k.mat');
+            case {'left_very_inflated'}
+                cortex = which('surf_workbench_very_inflated_32k_Left.mat');
+            case {'right_very_inflated'}
+                cortex = which('surf_workbench_very_inflated_32k_Right.mat');
+            case {'nocerebellum'}
+                do_cerebellum = false;
+            case {'ellipsoid'}
+                do_ellipsoid = true;
+                
+        end
+    end
+end
+
+if ~exist('n_region', 'var')
+    n_region = numel(r);
+end
+group = ones(n_region,1);
+
+for i = 1:length(varargin)
+    if ischar(varargin{i})
+        switch varargin{i}
+            case {'group'}
+                group = varargin{i+1};
         end
     end
 end
@@ -149,7 +189,7 @@ cols = group_cols(group,:);
 try
     radius = group_radius(group,:);
 catch
-    if numel(group_radius) == 1
+    if size(group_radius,1) == 1
         radius = repmat(group_radius, numel(group),1);
     else
         error('Check whether the number of radius is same with the number of groups.');
@@ -183,9 +223,9 @@ if do_highlight
 end
 
 % cerebellum
-cluster_surf(region ,which('surf_BrainMesh_Cerebellum_by_SLF.mat'), 2);
+if do_cerebellum, cluster_surf(region, which('surf_BrainMesh_Cerebellum_by_SLF.mat'), 2); end
 % whole-brain 
-cluster_surf(region ,which('surf_BrainMesh_ICBM152.mat'), 2);
+cluster_surf(region, cortex, 2);
 
 % make glass brains
 h = get(gca, 'children');
@@ -193,7 +233,7 @@ for i = 2:3
     if i == 2
         set(h(i), 'FaceAlpha', cortex_alpha);
     else
-        set(h(i), 'FaceAlpha', cerebellum_alpha);
+        if do_cerebellum, set(h(i), 'FaceAlpha', cerebellum_alpha); end
     end
 end
 
@@ -201,7 +241,9 @@ out.h1 = h;
 
 axis vis3d;
 
-centers = cat(1,r.mm_center);
+if ~exist('centers', 'var')
+    centers = cat(1,r.mm_center);
+end
 
 % draw all nodes
 
@@ -211,9 +253,15 @@ hold on;
 
 for i = 1:size(centers,1)
     
-    h = surf(x *radius(i)+centers(i,1),y*radius(i)+centers(i,2),z*radius(i)+centers(i,3));
+    if do_ellipsoid
+        h = surf(x *radius(i,1)+centers(i,1),y*radius(i,2)+centers(i,2),z*radius(i,3)+centers(i,3));
+    else
+        h = surf(x *radius(i)+centers(i,1),y*radius(i)+centers(i,2),z*radius(i)+centers(i,3));
+    end
     h.FaceColor = cols(i,:);
     h.EdgeAlpha = 0;
+    h.FaceAlpha = node_alpha;
+    
     if dosphere
         h.FaceLighting = 'gouraud';
     else
