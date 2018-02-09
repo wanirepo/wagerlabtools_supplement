@@ -287,21 +287,23 @@ if exist('w_cell', 'var')
             if iscell(neg_edge_color), neg_col = neg_edge_color{i}; else, neg_col = neg_edge_color; end
             if iscell(edge_alpha), edge_alpha2 = edge_alpha{i}; else, edge_alpha2 = edge_alpha; end
             
-            draw_edges(w, pos_col, neg_col, edge_alpha2, normfactor_input, do_pos, do_neg, centers);
+            normfactor{i} = draw_edges(w, pos_col, neg_col, edge_alpha2, normfactor_input, do_pos, do_neg, centers);
             hold on;
         end
     else
         w = w_cell;
         w(logical(eye(size(w,1)))) = 0; % remove diagonal
-        draw_edges(w, pos_edge_color, neg_edge_color, edge_alpha, normfactor_input, do_pos, do_neg, centers);
+        normfactor = draw_edges(w, pos_edge_color, neg_edge_color, edge_alpha, normfactor_input, do_pos, do_neg, centers);
     end
 end
+
+out.normfactor = normfactor;
 
 end
 
 % --------------- SUBFUNCTIONS --------------- 
 
-function draw_edges(w, pos_edge_color, neg_edge_color, edge_alpha, normfactor_input, do_pos, do_neg, centers)
+function normfactor = draw_edges(w, pos_edge_color, neg_edge_color, edge_alpha, normfactor_input, do_pos, do_neg, centers)
 
 
 [a,b] = find(w~=0);

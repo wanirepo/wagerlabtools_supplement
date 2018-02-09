@@ -42,6 +42,7 @@ use_veryinflated = true;
 axial_slice_range = [-20 25];
 dooutline = false;
 spacing = 10;
+do_color = false;
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -59,6 +60,9 @@ for i = 1:length(varargin)
                 end
             case {'outline'}
                 dooutline = true;
+            case {'color'}
+                do_color = true;
+                color = varargin{i+1};
         end
     end
 end
@@ -68,12 +72,22 @@ end
 poscm = colormap_tor([0.96 0.41 0], [1 1 0]);  % warm
 negcm = colormap_tor([.23 1 1], [0.11 0.46 1]);  % cools
 
-if use_inflated
-    out.h_surf_R = cluster_surf(r ,which('surf_workbench_inflated_32k_Right.mat'), 2, 'heatmap', 'colormaps', poscm, negcm);
-    out.h_surf_L = cluster_surf(r ,which('surf_workbench_inflated_32k_Left.mat'), 2, 'heatmap', 'colormaps', poscm, negcm);
-elseif use_veryinflated
-    out.h_surf_R = cluster_surf(r ,which('surf_workbench_very_inflated_32k_Right.mat'), 2, 'heatmap', 'colormaps', poscm, negcm);
-    out.h_surf_L = cluster_surf(r ,which('surf_workbench_very_inflated_32k_Left.mat'), 2, 'heatmap', 'colormaps', poscm, negcm);
+if ~do_color
+    if use_inflated
+        out.h_surf_R = cluster_surf(r ,which('surf_workbench_inflated_32k_Right.mat'), 2, 'heatmap', 'colormaps', poscm, negcm);
+        out.h_surf_L = cluster_surf(r ,which('surf_workbench_inflated_32k_Left.mat'), 2, 'heatmap', 'colormaps', poscm, negcm);
+    elseif use_veryinflated
+        out.h_surf_R = cluster_surf(r ,which('surf_workbench_very_inflated_32k_Right.mat'), 2, 'heatmap', 'colormaps', poscm, negcm);
+        out.h_surf_L = cluster_surf(r ,which('surf_workbench_very_inflated_32k_Left.mat'), 2, 'heatmap', 'colormaps', poscm, negcm);
+    end
+else
+    if use_inflated
+        out.h_surf_R = cluster_surf(r ,which('surf_workbench_inflated_32k_Right.mat'), 3, {color});
+        out.h_surf_L = cluster_surf(r ,which('surf_workbench_inflated_32k_Left.mat'), 3, {color});
+    elseif use_veryinflated
+        out.h_surf_R = cluster_surf(r ,which('surf_workbench_very_inflated_32k_Right.mat'), 3, {color});
+        out.h_surf_L = cluster_surf(r ,which('surf_workbench_very_inflated_32k_Left.mat'), 3, {color});
+    end
 end
 
 out.h = get(gca, 'children');
@@ -107,7 +121,11 @@ squeeze_axes_percent(o2.montage{3}.axis_handles, 20);
 
 %%
 o2 = removeblobs(o2);
-o2 = addblobs(o2, r, 'splitcolor', {[.23 1 1], [0.17 0.61 1], [0.99 0.46 0], [1 1 0]}); % A&B
+if ~do_color
+    o2 = addblobs(o2, r, 'splitcolor', {[.23 1 1], [0.17 0.61 1], [0.99 0.46 0], [1 1 0]}); % A&B
+else
+    o2 = addblobs(o2, r, 'color', color); % A&B
+end
 if dooutline
     o2 = addblobs(o2, r, 'outline', 'linewidth', 2, 'outline_color', [0 0 0]); % A&B
 end

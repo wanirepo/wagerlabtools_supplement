@@ -53,6 +53,7 @@ col_map = [0.3686    0.3098    0.6353
     0.8353    0.2431    0.3098
     0.6196    0.0039    0.2588];
 
+do_display = 1;
 docolorbar = 0;
 dolines_1st = 1;
 dolines_2nd = 1;
@@ -71,8 +72,12 @@ display_group_mean = 0;
 display_group_sum = 0;
 display_group_color = 0;
 dosmooth = 0;
+do_sig = false;
+sig_lwidth = 3;
+sig_col = [0.7529 0 0;0 0.4392 0.7529];
 
 r_descript = 'input r';
+triangle_col = 'k';
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -117,6 +122,17 @@ for i = 1:length(varargin)
                 dosmooth = 1; % 2d gaussian smoothing (imgaussfilt) with sigma = 1
             case {'triangle'}
                 do_triangle = 1;
+            case {'triangle_color'}
+                triangle_col = varargin{i+1};
+            case {'sig'}
+                do_sig = true;
+                sig_matrix = varargin{i+1};
+            case {'sig_linewidth'}
+                sig_lwidth = varargin{i+1};
+            case {'sig_color'}
+                sig_col = varargin{i+1};
+            case {'noplot', 'nodisplay'}
+                do_display = 0;
         end
     end
 end
@@ -163,112 +179,127 @@ if display_group_mean || display_group_sum
     idx = 1:size(r,1); % not to use group sorted idx
 end
 
-% default: upper 97.5%, lower 2.5%
-m = max(prctile(r(:), 97.5), abs(prctile(r(:), 2.5)));
-clim = [-m m];
-clim_descript = 'default: upper 97.5%, lower 2.5%';
-
-for i = 1:length(varargin)
-    if ischar(varargin{i})
-        switch varargin{i}
-            % functional commands
-            case {'clim'}
-                clim = varargin{i+1};
-                clim_descript = 'optional input';
+if do_display
+    % default: upper 97.5%, lower 2.5%
+    m = max(prctile(r(:), 97.5), abs(prctile(r(:), 2.5)));
+    clim = [-m m];
+    clim_descript = 'default: upper 97.5%, lower 2.5%';
+    
+    for i = 1:length(varargin)
+        if ischar(varargin{i})
+            switch varargin{i}
+                % functional commands
+                case {'clim'}
+                    clim = varargin{i+1};
+                    clim_descript = 'optional input';
+            end
         end
     end
-end
-
-% check if r is a square matrix
-if size(r,1) == size(r,2)
-    size_r = size(r,1);
-else
-    error('r should be a square matrix.');
-end
-size_max = size_r+.5;
-
-% close all;
-h = figure;
-
-% imagesc
-if dosmooth
-    imagesc(imgaussfilt(r(idx,idx),1), [clim(1) clim(2)]);
-else
-    imagesc(r(idx,idx), [clim(1) clim(2)]);
-end
-
-if docolorbar
-    colorbar;
-    set(gcf, 'color', 'w');
-else
-    set(gcf, 'color', 'w');
-end
-
-axis off;
-colormap(col_map);
-
-set(gca, 'xlim', [-.5 size_r+1.5], 'ylim', [-.5 size_r+1.5])
-hold on; 
-
-if dolines_1st 
-    % one
-    for i = 1.5:1:(size_r-.5)
-        line([i i], [.5 size_max], 'color', lcolor(1,:), 'linewidth', lwidth(1));
-        line([.5 size_max], [i i], 'color', lcolor(1,:), 'linewidth', lwidth(1));
-    end
-end
     
-if dolines_2nd 
-    % five
-    for i = .5:5:(size_r+.5)
-        line([i i], [.5 size_max], 'color', lcolor(2,:), 'linewidth', lwidth(2));
-        line([.5 size_max], [i i], 'color', lcolor(2,:), 'linewidth', lwidth(2));
-    end
-end
-   
-if dolines_out 
-    for i = [.5 size_r+.5]
-        line([i i], [.5 size_max], 'color', lcolor(3,:), 'linewidth', lwidth(3));
-        line([.5 size_max], [i i], 'color', lcolor(3,:), 'linewidth', lwidth(3));
-    end
-end
-
-if dogroupline
-    n_c = histc(sorted_group, unique(sorted_group));
-    n_c = [0; n_c];
-    for i = 1:(numel(n_c)-1)
-        
-        xy1 = [sum(n_c(1:i)) sum(n_c(1:i))]+0.5;
-        xy2 = [sum(n_c(1:(i+1))) sum(n_c(1:(i+1)))]+0.5;
-        
-        line([xy1(1) xy1(1)], [xy1(2), xy2(2)], 'color', glcolor, 'linewidth', glwidth);
-        line([xy1(1) xy2(1)], [xy1(2) xy1(2)], 'color', glcolor, 'linewidth', glwidth);
-        line([xy2(1) xy2(1)], [xy1(2) xy2(2)], 'color', glcolor, 'linewidth', glwidth);
-        line([xy1(1) xy2(1)], [xy2(2) xy2(2)], 'color', glcolor, 'linewidth', glwidth);
-        
-    end
-    
-end
-
-if display_group_color
-    if ~display_group_mean && ~display_group_sum
-        error('The ''display_group_color'' option should be used with ''display_group_mean'' or ''display_group_sum'' options');
+    % check if r is a square matrix
+    if size(r,1) == size(r,2)
+        size_r = size(r,1);
     else
-        for i = 1:numel(u_group)
-            scatter(-.5, i, 1000, group_color(i,:), 'filled');
-            scatter(i, numel(u_group)+1.5, 1000, group_color(i,:), 'filled');
+        error('r should be a square matrix.');
+    end
+    size_max = size_r+.5;
+    
+    % close all;
+    h = figure;
+    
+    % imagesc
+    if dosmooth
+        imagesc(imgaussfilt(r(idx,idx),1), [clim(1) clim(2)]);
+    else
+        imagesc(r(idx,idx), [clim(1) clim(2)]);
+    end
+    
+    if docolorbar
+        colorbar;
+        set(gcf, 'color', 'w');
+    else
+        set(gcf, 'color', 'w');
+    end
+    
+    axis off;
+    colormap(col_map);
+    
+    set(gca, 'xlim', [-.5 size_r+1.5], 'ylim', [-.5 size_r+1.5])
+    hold on;
+    
+    if dolines_1st
+        % one
+        for i = 1.5:1:(size_r-.5)
+            line([i i], [.5 size_max], 'color', lcolor(1,:), 'linewidth', lwidth(1));
+            line([.5 size_max], [i i], 'color', lcolor(1,:), 'linewidth', lwidth(1));
         end
     end
-end
-
-if do_triangle
-    patch([-1, size(r,1)+2, size(r,1)+2], [-1, -1, size(r,1)+2], 'w', 'edgecolor', 'w');
-    patch([.5, .5, size(r,1)+.5], [.5, size(r,1)+.5, size(r,1)+.5], 'w', 'edgecolor', 'k', 'facealpha', 0, 'LineWidth', 5);
-end
     
-out.h = h;
-out.color_lim = clim;
-out.color_lim_descript = clim_descript;
+    if do_sig
+        % one
+        [b, a, c] = find(sig_matrix~=0);
+        for i = 1:numel(a)
+            x = [a(i)-.5 a(i)-.5 a(i)+.5 a(i)+.5 a(i)-.5];
+            y = [b(i)-.5 b(i)+.5 b(i)+.5 b(i)-.5 b(i)-.5];
+            if c(i) == 1
+                line(x, y, 'linewidth', sig_lwidth, 'color', sig_col(1,:));
+            else
+                line(x, y, 'linewidth', sig_lwidth, 'color', sig_col(2,:));
+            end
+        end
+    end
+    
+    if dolines_2nd
+        % five
+        for i = .5:5:(size_r+.5)
+            line([i i], [.5 size_max], 'color', lcolor(2,:), 'linewidth', lwidth(2));
+            line([.5 size_max], [i i], 'color', lcolor(2,:), 'linewidth', lwidth(2));
+        end
+    end
+    
+    if dolines_out
+        for i = [.5 size_r+.5]
+            line([i i], [.5 size_max], 'color', lcolor(3,:), 'linewidth', lwidth(3));
+            line([.5 size_max], [i i], 'color', lcolor(3,:), 'linewidth', lwidth(3));
+        end
+    end
+    
+    if dogroupline
+        n_c = histc(sorted_group, unique(sorted_group));
+        n_c = [0; n_c];
+        for i = 1:(numel(n_c)-1)
+            
+            xy1 = [sum(n_c(1:i)) sum(n_c(1:i))]+0.5;
+            xy2 = [sum(n_c(1:(i+1))) sum(n_c(1:(i+1)))]+0.5;
+            
+            line([xy1(1) xy1(1)], [xy1(2), xy2(2)], 'color', glcolor, 'linewidth', glwidth);
+            line([xy1(1) xy2(1)], [xy1(2) xy1(2)], 'color', glcolor, 'linewidth', glwidth);
+            line([xy2(1) xy2(1)], [xy1(2) xy2(2)], 'color', glcolor, 'linewidth', glwidth);
+            line([xy1(1) xy2(1)], [xy2(2) xy2(2)], 'color', glcolor, 'linewidth', glwidth);
+            
+        end
+        
+    end
+    
+    if display_group_color
+        if ~display_group_mean && ~display_group_sum
+            warning('The ''display_group_color'' option is recommended using with ''display_group_mean'' or ''display_group_sum'' options');
+        end
+        for i = 1:size(group_color,1)
+            scatter(-.5, i, 1000, group_color(i,:), 'filled');
+            scatter(i, size(group_color,1)+1.5, 1000, group_color(i,:), 'filled');
+        end
+    end
+    
+    if do_triangle
+        patch([-1, size(r,1)+2, size(r,1)+2], [-1, -1, size(r,1)+2], 'w', 'edgecolor', 'w');
+        patch([.5, .5, size(r,1)+.5], [.5, size(r,1)+.5, size(r,1)+.5], 'w', 'edgecolor', triangle_col, 'facealpha', 0, 'LineWidth', 5);
+    end
+    
+    out.h = h;
+    out.color_lim = clim;
+    out.color_lim_descript = clim_descript;
+end
 out.r = r(idx,idx);
 out.r_descript = r_descript;
 

@@ -4,18 +4,20 @@ function [pFDR] = getFDR(p,q)
 %   q: q-value for FDR (eg: q=0.05)
 %   V: the number of voxels tested (eg: V=90347)
 %   by ChoongWan Woo
-    
-    V = length(p);
-    P=sort(p);
-    for i=1:V
-        if P(i) <= i*q/V
+
+pFDR = 1;
+V = length(p);
+P=sort(p);
+for i=1:V
+    if P(i) <= i*q/V
+    else
+        if i~=1
+            pFDR = P(i-1);
         else
-            if i~=1
-                pFDR = P(i-1);
-            else
-                pFDR = P(1);
-            end
-            break
+            pFDR = P(1);
         end
+        break
     end
+end
+
 end

@@ -1,4 +1,4 @@
-    function circos_wani(A, varargin)
+function out = circos_wani(A, varargin)
 
 % This function draws circos plot.
 %
@@ -27,6 +27,7 @@ do_node_alpha = false;
 draw_node_top  = false;
 draw_circle = false;
 draw_node_edge = false;
+rotate_angle = 0;
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -53,6 +54,8 @@ for i = 1:length(varargin)
                 draw_circle = true;
             case {'draw_node_edge'}
                 draw_node_edge = true;
+            case {'rotate'}
+                rotate_angle = varargin{i+1};
         end
     end
 end
@@ -82,7 +85,7 @@ if laterality
         end
     end
 else
-     g_idx_total = [];
+    g_idx_total = [];
     for i = 1:numel(g_order)
         temp = group;
         g_idx = find(temp==g_order(i));
@@ -96,7 +99,7 @@ if laterality, lat_index = lat_index(g_idx_total); end
 
 [row,col,w] = find(A);
 sumA = sum(A);
-norm_factor = max(abs(w)); % the simplest norm factor = maximum
+norm_factor = prctile(abs(w), 80); 
 % norm_factor2 = min(abs(sumA(sumA~=0)));
 
 for i = 1:length(varargin)
@@ -109,7 +112,7 @@ for i = 1:length(varargin)
     end
 end
 
-if laterality 
+if laterality
     t1 = linspace(-pi/2, pi/2, sum(lat_index>0)+4)'; % theta for each node
     t1([1 2 sum(lat_index>0)+3 sum(lat_index>0)+4]) = [];
     t2 = linspace(-pi/2, pi/2, sum(lat_index<0)+4)'+pi; % theta for each node
@@ -119,13 +122,15 @@ else
     t = linspace(-pi, pi,length(A) + 1)'; % theta for each node
 end
 
+t = t - deg2rad(rotate_angle);
+
 if draw_circle
     tt = linspace(-pi, pi,1000)'; % theta for each node
-    plot(cos(tt), sin(tt), 'color', [.8 .8 .8], 'linewidth', 8); 
+    plot(cos(tt), sin(tt), 'color', [.8 .8 .8], 'linewidth', 8);
     hold on;
 end
 
-for i = 1:length(A) %find(sumA == 0) 
+for i = 1:length(A) %find(sumA == 0)
     % scatter(cos(t(i)),sin(t(i)), 50, gcols(group(i),:),  'filled', 'MarkerFaceAlpha', .5);
     scatter(cos(t(i)),sin(t(i)), 150, gcols(group(i),:),  'filled');
     hold on;
@@ -173,7 +178,7 @@ for i = 1:length(w)
             % points are diametric, so draw a straight line
             u = [cos(t(row(i)));sin(t(row(i)))];
             v = [cos(t(col(i)));sin(t(col(i)))];
-            %this.Node(row(i)).Connection(end+1) = 
+            %this.Node(row(i)).Connection(end+1) =
             if lineWidth(i) > 0
                 line(...
                     [u(1);v(1)],...
@@ -204,7 +209,7 @@ for i = 1:length(w)
                 theta = linspace(thetaLim(1),thetaLim(2)).';
             end
             
-            %this.Node(row(i)).Connection(end+1) = 
+            %this.Node(row(i)).Connection(end+1) =
             if lineWidth(i) > 0
                 line(...
                     r*cos(theta)+x0,...
@@ -254,5 +259,7 @@ end
 
 set(gcf, 'color', 'w', 'position', [1   444   562   511]);
 axis off
+
+out.norm_factor = norm_factor;
 
 end
