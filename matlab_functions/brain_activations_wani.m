@@ -74,11 +74,11 @@ negcm = colormap_tor([.23 1 1], [0.11 0.46 1]);  % cools
 
 if ~do_color
     if use_inflated
-        out.h_surf_R = cluster_surf(r ,which('surf_workbench_inflated_32k_Right.mat'), 2, 'heatmap', 'colormaps', poscm, negcm);
-        out.h_surf_L = cluster_surf(r ,which('surf_workbench_inflated_32k_Left.mat'), 2, 'heatmap', 'colormaps', poscm, negcm);
+        out.h_surf_R = cluster_surf(r ,which('surf_workbench_inflated_32k_Right.mat'), 4, 'heatmap', 'colormaps', poscm, negcm);
+        out.h_surf_L = cluster_surf(r ,which('surf_workbench_inflated_32k_Left.mat'),4, 'heatmap', 'colormaps', poscm, negcm);
     elseif use_veryinflated
-        out.h_surf_R = cluster_surf(r ,which('surf_workbench_very_inflated_32k_Right.mat'), 2, 'heatmap', 'colormaps', poscm, negcm);
-        out.h_surf_L = cluster_surf(r ,which('surf_workbench_very_inflated_32k_Left.mat'), 2, 'heatmap', 'colormaps', poscm, negcm);
+        out.h_surf_R = cluster_surf(r ,which('surf_workbench_very_inflated_32k_Right.mat'), 4, 'heatmap', 'colormaps', poscm, negcm);
+        out.h_surf_L = cluster_surf(r ,which('surf_workbench_very_inflated_32k_Left.mat'), 4, 'heatmap', 'colormaps', poscm, negcm);
     end
 else
     if use_inflated

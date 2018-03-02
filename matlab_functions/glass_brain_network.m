@@ -295,9 +295,9 @@ if exist('w_cell', 'var')
         w(logical(eye(size(w,1)))) = 0; % remove diagonal
         normfactor = draw_edges(w, pos_edge_color, neg_edge_color, edge_alpha, normfactor_input, do_pos, do_neg, centers);
     end
+    
+    out.normfactor = normfactor;
 end
-
-out.normfactor = normfactor;
 
 end
 

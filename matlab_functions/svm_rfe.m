@@ -27,19 +27,27 @@ function out = svm_rfe(dat, varargin)
 %           50000.
 %           e.g., 'n_finalfeat', 30000
 %
-%       **for other inputs see predict
+%       **n_initialfeat**
+%           The number of features, from which the algorithm starts the elimination 
+%           by the defined step. The excessive features are eliminated in one step. 
+%           Default is the whole feature set.
+%           e.g., 'n_initialfeat', 100000
+%
+%       **for other inputs see fmri_data.predict
 %
 % :Example:
 %
-%       out = svm_rfe(dat, 'algorithm_name', 'cv_svm', 'nfolds', 5, 'error_type', 'mse');
-%       out = svm_rfe(dat, 'n_finalfeat', 30000, 'algorithm_name', 'cv_svm', 'nfolds', 5, 'error_type', 'mse');
-%       out = svm_rfe(dat, 'n_removal', 12000, 'n_finalfeat', 30000, 'algorithm_name', 'cv_svm', 'nfolds', 5, 'error_type', 'mse');
-%
-
+%       out = svm_rfe(dat, 'algorithm_name', 'cv_svm', 'nfolds', 5, 'error_type', 'mcr');
+%       out = svm_rfe(dat, 'n_finalfeat', 30000, 'algorithm_name', 'cv_svm', 'nfolds', 5, 'error_type', 'mcr);
+%       out = svm_rfe(dat, 'n_removal', 12000, 'n_finalfeat', 30000, 'algorithm_name', 'cv_svm', 'nfolds', 5, 'error_type', 'mcr');
+%       out = svm_rfe(dat, 'n_removal', 12000, 'n_finalfeat', 30000, 'n_initialfeat', 150000, 'algorithm_name', 'cv_svm', 'nfolds', 5, 'error_type', 'mcr');
+% 
+% 
 
 % default
 n_removal = 10000;
 n_finalfeat = 50000;
+init_feat = 0;
 
 for i = 1:length(varargin)
     if ischar(varargin{i})
@@ -50,6 +58,10 @@ for i = 1:length(varargin)
                 varargin{i+1} = [];
             case 'n_finalfeat'
                 n_finalfeat = varargin{i+1};
+                varargin{i+1} = [];
+            case 'n_initialfeat'
+                n_initialfeat = varargin{i+1};
+                init_feat = 1;
                 varargin{i+1} = [];
         end
     end
@@ -62,11 +74,43 @@ out.descending_indx = [];
 out.whkeep_orginal_idx{1} = orig_indx;
 out.removed_index{1} = [];
 dat_loop = dat;
-% sorting the weights and remove the features, while keeping the indices
-
-
-
 i = 1;
+
+
+if init_feat == 1 % initial removal
+    n_initremoval = data_dim - n_initialfeat;    % calculate how many features to remove
+    
+    str = sprintf('Initial training with all features...');
+    fprintf('%s\n', str)
+    
+    [cverr, stats, optout] = predict(dat_loop, varargin{:});
+    
+    out.cv_accuracy(i,1) = 1-stats.cverr;            % collecting outputs (weights, accuracy) from training
+    out.n_features(i,1) = size(dat_loop.dat,1);
+    w = optout{1};
+    
+    w = w.^2;
+    [~, out.ascending_idx{i}] = sort(w);
+    ordered_orig_indx = orig_indx(out.ascending_idx{i});    
+    out.descending_indx = [ordered_orig_indx(1:n_initremoval) out.descending_indx];  % keeping ordered indices
+    out.removed_index{i+1} = ordered_orig_indx(1:n_initremoval); 
+    
+    % removal
+    remove_idx = out.ascending_idx{i}(1:n_initremoval);
+    dat_loop.dat(remove_idx, :) = [];  
+    
+    orig_indx(out.ascending_idx{i}(1:n_initremoval)) = []; % clear removed original indices
+    out.whkeep_orginal_idx{i+1} = orig_indx;    % save kept original indices
+    
+    data_dim = data_dim - n_initremoval;  % reduce the dimension
+
+    fprintf('\n')    
+    str = sprintf('Eliminated %d features.', n_initremoval);
+    fprintf('%s\n', str)
+    
+    i = i+1;
+    
+end
 
 while 1
     
@@ -115,8 +159,17 @@ while 1
     
 end
 
-
 out.descending_indx = [orig_indx out.descending_indx];
+
+out.smallestnfeat_stats = stats;  % save stats of the smallest model
+indxToRemove = [];
+for i=1:length(out.cv_accuracy)
+   indxToRemove = [out.removed_index{i} indxToRemove]; 
+end
+
+[indx,~] = find(~out.smallestnfeat_stats.weight_obj.removed_voxels);
+out.smallestnfeat_stats.weight_obj.removed_voxels(indx(indxToRemove)) = true;
+
 
 
 [max_acc, max_idx] = max(out.cv_accuracy);
@@ -130,17 +183,15 @@ fprintf('\n')
 str = sprintf('Training the final model...');
     fprintf('%s\n', str)
 
-[cverr, out.stats, optout] = predict(dat, varargin{:});
+[cverr, out.bestaccuracy_stats, optout] = predict(dat, varargin{:}); % out.bestaccuracy_stats
 
 indxToRemove = [];
 for i=1:max_idx
    indxToRemove = [out.removed_index{i} indxToRemove]; 
 end
 
-[indx,~] = find(~out.stats.weight_obj.removed_voxels);
-out.stats.weight_obj.removed_voxels(indx(indxToRemove)) = true;   % update removed voxels in the weight_obj
-
-
+[indx,~] = find(~out.bestaccuracy_stats.weight_obj.removed_voxels);
+out.bestaccuracy_stats.weight_obj.removed_voxels(indx(indxToRemove)) = true;   % update removed voxels in the weight_obj
 
 
 end

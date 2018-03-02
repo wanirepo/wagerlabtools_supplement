@@ -1,4 +1,4 @@
-function out = error_ellipse(varargin)
+function out = error_ellipse_wani(varargin)
 %
 % ERROR_ELLIPSE - plot an error ellipse, or ellipsoid, defining confidence region
 %
