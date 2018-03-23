@@ -68,7 +68,7 @@ function boxplot_wani_2016(x, varargin)
 
 coln = size(x,2);
 colud = repmat([0 0 0], coln*2, 1); % default color = black
-colud2 = repmat([.9 .9 .9], coln*2, 1); % default back color = black
+colud2 = repmat([.5 .5 .5], coln*2, 1); % default back color = black
 colud3 = flipud(colud2); 
 
 dorefline = 0;

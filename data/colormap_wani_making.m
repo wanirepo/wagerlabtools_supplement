@@ -85,3 +85,29 @@ col11_from_colorbrewer = ...
 col11_from_colorbrewer = flipud(col11_from_colorbrewer);
 
 save colormap_colorbrewer_wani col6_from_colorbrewer col11_from_colorbrewer;
+
+%% ggplot colormap
+
+col7_ggplot2 = [
+    232 125 114
+    190 154 51
+    109 175 52
+    86 188 151
+    78 181 230
+    159 143 248
+    233 111 210]./255;
+
+save colormap_ggplot2 col7_ggplot2;
+
+col7_okabe_ito = [
+    220 160 56
+    109 179 228
+    69 154 118
+    239 226 98
+    45 114 172
+    199 100 38
+    193 126 164]./255;
+save solormap_okabe_ito col7_okabe_ito;
+
+    
+    
